@@ -12,7 +12,7 @@ const Home = () => {
     return (
         <div>
             {/* Hero Section with Background Image */}
-            <section className="relative min-h-[500px] flex items-center">
+            <section className="relative min-h-[85vh] flex items-center">
                 {/* Background Image */}
                 <div 
                     className="absolute inset-0 bg-cover bg-center"
