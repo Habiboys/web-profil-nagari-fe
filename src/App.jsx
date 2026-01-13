@@ -10,7 +10,7 @@ import News from './pages/News';
 import Ppid from './pages/Ppid';
 import ProductDetail from './pages/ProductDetail';
 import Profile from './pages/Profile';
-import './App.css'
+import './app.css'
 //aa
 
 function App() {
