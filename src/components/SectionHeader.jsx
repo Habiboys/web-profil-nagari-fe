@@ -1,10 +1,9 @@
 const SectionHeader = ({ title, subtitle, align = 'center', color = 'text-slate-900' }) => (
-    <div className={`mb-16 ${align === 'center' ? 'text-center' : 'text-left'}`}>
-        <h2 className={`text-4xl font-extrabold mb-4 uppercase tracking-tight relative inline-block ${color}`}>
+    <div className={`mb-12 ${align === 'center' ? 'text-center' : 'text-left'}`}>
+        <p className="text-blue-600 font-medium uppercase tracking-widest text-sm mb-2">{subtitle}</p>
+        <h2 className={`text-3xl md:text-4xl font-bold ${color}`}>
             {title}
-            <span className="block h-1.5 w-24 bg-orange-500 mt-2 mx-auto"></span>
         </h2>
-        {subtitle && <p className="text-slate-500 text-lg mt-2 max-w-3xl mx-auto font-medium">{subtitle}</p>}
     </div>
 );
 

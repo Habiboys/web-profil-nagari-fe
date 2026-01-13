@@ -1,91 +1,77 @@
-import { MdInfo, MdTrendingUp, MdVerified } from 'react-icons/md';
+import { MdTrendingUp } from 'react-icons/md';
 
 const Idm = () => {
     const idmScore = 0.8286;
     const idmStatus = "MANDIRI";
     
     return (
-        <div className="min-h-screen bg-slate-50">
-            {/* Hero Header - Flat Solid Color */}
-            <div className="bg-slate-900 text-white py-20 border-b-4 border-orange-500">
-                <div className="container mx-auto px-4 text-center">
-                    <span className="bg-white/10 border border-white/20 text-white px-4 py-1.5 text-xs font-bold uppercase tracking-widest mb-6 inline-block">
-                        Data Tahun 2026
-                    </span>
-                    <h1 className="text-4xl md:text-5xl font-extrabold mb-4 uppercase tracking-tight">Indeks Desa Membangun</h1>
-                    <p className="text-slate-400 text-lg max-w-2xl mx-auto font-medium">
-                        Mengukur pencapaian kemandirian dan keberlanjutan pembangunan Desa Tamang secara objektif.
-                    </p>
+        <div className="min-h-screen bg-white">
+            {/* Hero Header with Background */}
+            <div className="relative py-24">
+                <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1504418456623-1e32de4e6a03?w=1920&q=80)' }}
+                >
+                    <div className="absolute inset-0 bg-slate-900/75"></div>
+                </div>
+                <div className="container mx-auto px-4 text-center relative z-10 text-white">
+                    <p className="text-blue-300 font-medium uppercase tracking-widest text-sm mb-2">Data Tahun 2025</p>
+                    <h1 className="text-3xl md:text-5xl font-bold mb-3">Indeks Desa Membangun</h1>
+                    <p className="text-slate-300">Pengukuran kemandirian dan pembangunan Nagari Talang Anau</p>
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 -mt-10 pb-20 relative z-10">
-                {/* Main Score Card - Boxy */}
-                <div className="bg-white shadow-lg p-0 flex flex-col md:flex-row border border-slate-200 mb-12">
-                    <div className="p-8 md:p-12 flex-1 border-b md:border-b-0 md:border-r border-slate-200">
-                        <h2 className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-2">Status IDM Saat Ini</h2>
-                        <div className="text-5xl md:text-7xl font-black text-slate-900 mb-4 tracking-tighter">
-                            {idmStatus}
-                        </div>
-                        <div className="flex items-center gap-2 text-green-700 bg-green-50 px-4 py-2 border border-green-200 inline-block font-bold text-sm uppercase">
-                            <MdVerified /> Terverifikasi Kemendes PDTT
-                        </div>
+            <div className="container mx-auto px-4 py-12">
+                {/* Main Score */}
+                <div className="grid md:grid-cols-2 gap-8 mb-12">
+                    <div className="border border-slate-200 p-8">
+                        <p className="text-sm text-slate-500 uppercase tracking-wider mb-2">Status IDM</p>
+                        <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">{idmStatus}</h2>
+                        <p className="text-sm text-slate-500">Terverifikasi Kemendes PDTT</p>
                     </div>
-
-                    <div className="p-8 md:p-12 w-full md:w-1/3 bg-blue-50 flex flex-col justify-center items-center text-center">
-                        <span className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-2">Total Skor Indeks</span>
-                        <span className="text-6xl font-black text-blue-800">{idmScore}</span>
-                        <span className="text-green-600 text-sm font-bold mt-2 flex items-center gap-1 uppercase">
-                            <MdTrendingUp /> +0.024 (Naik)
-                        </span>
+                    <div className="bg-slate-50 p-8">
+                        <p className="text-sm text-slate-500 uppercase tracking-wider mb-2">Skor Indeks</p>
+                        <h2 className="text-4xl md:text-5xl font-bold text-blue-600 mb-4">{idmScore}</h2>
+                        <p className="text-sm text-green-600 flex items-center gap-1">
+                            <MdTrendingUp /> +0.024 dari tahun sebelumnya
+                        </p>
                     </div>
                 </div>
 
-                {/* Detailed Scores - Flat Cards */}
+                {/* Detailed Scores */}
+                <h3 className="text-lg font-bold text-slate-900 mb-6">Komponen Indeks</h3>
                 <div className="grid md:grid-cols-3 gap-6 mb-12">
                     {[
-                        { title: "Ketahanan Sosial (IKS)", score: 0.8656, color: "text-emerald-700", bg: "bg-emerald-100", border: "border-emerald-600", icon: "S" },
-                        { title: "Ketahanan Ekonomi (IKE)", score: 0.6667, color: "text-amber-700", bg: "bg-amber-100", border: "border-amber-600", icon: "E" },
-                        { title: "Ketahanan Lingkungan (IKL)", score: 0.9333, color: "text-cyan-700", bg: "bg-cyan-100", border: "border-cyan-600", icon: "L" }
+                        { title: "Ketahanan Sosial", code: "IKS", score: 0.8656 },
+                        { title: "Ketahanan Ekonomi", code: "IKE", score: 0.6667 },
+                        { title: "Ketahanan Lingkungan", code: "IKL", score: 0.9333 }
                     ].map((item, idx) => (
-                        <div key={idx} className={`bg-white p-8 shadow-sm border-t-4 ${item.border} border-x border-b border-slate-200 group hover:shadow-md transition-shadow`}>
-                            <div className="flex justify-between items-start mb-6">
-                                <div className={`w-12 h-12 ${item.bg} flex items-center justify-center text-xl font-black ${item.color}`}>
-                                    {item.icon}
+                        <div key={idx} className="border border-slate-200 p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <p className="text-sm text-slate-500">{item.code}</p>
+                                    <h4 className="font-medium text-slate-900">{item.title}</h4>
                                 </div>
-                                <div className={`text-3xl font-black ${item.color}`}>{item.score}</div>
+                                <span className="text-2xl font-bold text-slate-900">{item.score}</span>
                             </div>
-                            <h3 className="text-slate-900 font-bold text-lg mb-4 uppercase tracking-tight">{item.title}</h3>
-                            <div className="relative pt-2">
-                                <div className="h-3 bg-slate-100 w-full">
-                                    <div 
-                                        className={`h-full ${item.bg.replace('bg-', 'bg-').replace('100', '600')} transition-all duration-1000 ease-out`} 
-                                        style={{ width: `${item.score * 100}%` }}
-                                    ></div>
-                                </div>
+                            <div className="h-2 bg-slate-100 w-full">
+                                <div className="h-full bg-blue-600" style={{ width: `${item.score * 100}%` }}></div>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                {/* Analysis Section - Dark Flat */}
-                <div className="bg-slate-800 p-8 md:p-12 text-white border-l-8 border-blue-600 shadow-lg">
-                    <div className="flex flex-col md:flex-row gap-8 items-start">
-                        <div className="bg-white/10 p-4 backdrop-blur-none border border-white/10 shrink-0">
-                            <MdInfo size={32} className="text-white" />
-                        </div>
-                        <div>
-                            <h3 className="text-2xl font-bold mb-4 uppercase tracking-wide text-white">Analisis Perkembangan</h3>
-                            <p className="text-slate-300 leading-relaxed text-lg mb-8 max-w-4xl text-justify">
-                                Secara umum, Desa Tamang telah mencapai status <strong className="text-white bg-blue-700 px-1">MANDIRI</strong>. 
-                                Kekuatan utama terletak pada aspek <span className="text-cyan-400 font-bold uppercase">Lingkungan (0.9333)</span> dan <span className="text-emerald-400 font-bold uppercase">Sosial (0.8656)</span>. 
-                                Fokus pembangunan selanjutnya disarankan pada penguatan sektor <span className="text-amber-400 font-bold uppercase">Ekonomi (0.6667)</span> untuk mencapai keseimbangan pembangunan yang berkelanjutan.
-                            </p>
-                            <button className="bg-white text-slate-900 hover:bg-slate-200 px-8 py-3 font-bold uppercase tracking-wider transition-colors text-sm">
-                                Unduh Laporan PDF
-                            </button>
-                        </div>
-                    </div>
+                {/* Analysis */}
+                <div className="bg-slate-50 p-8">
+                    <h3 className="font-bold text-slate-900 mb-4">Analisis</h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">
+                        Nagari Talang Anau telah mencapai status <strong>MANDIRI</strong> dengan skor 0.8286. 
+                        Kekuatan utama terletak pada aspek Lingkungan (0.9333) dan Sosial (0.8656). 
+                        Fokus pengembangan selanjutnya pada penguatan sektor Ekonomi (0.6667).
+                    </p>
+                    <button className="bg-slate-900 text-white px-6 py-2 text-sm font-medium hover:bg-slate-800 transition-colors">
+                        Unduh Laporan
+                    </button>
                 </div>
             </div>
         </div>
