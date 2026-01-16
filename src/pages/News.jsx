@@ -1,56 +1,70 @@
-import { MdCalendarToday } from 'react-icons/md';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { newsData } from '../data/mockData';
+import api from '../api/axios';
+import ENDPOINTS from '../api/endpoints';
 
 const News = () => {
+    const [news, setNews] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchNews = async () => {
+            try {
+                const res = await api.get(ENDPOINTS.NEWS.GET_ALL);
+                setNews(res.data || []);
+            } catch (error) {
+                console.error('Failed to fetch news:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchNews();
+    }, []);
+
     return (
-        <div className="min-h-screen bg-white">
-            {/* Hero Header */}
-            <div className="relative py-24">
-                <div 
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1920&q=80)' }}
-                >
-                    <div className="absolute inset-0 bg-slate-900/75"></div>
-                </div>
-                <div className="container mx-auto px-4 text-center relative z-10 text-white">
-                    <p className="text-blue-300 font-medium uppercase tracking-widest text-sm mb-2">Informasi Terkini</p>
-                    <h1 className="text-3xl md:text-5xl font-bold mb-3">Kabar Nagari</h1>
-                    <p className="text-slate-300">Berita dan kegiatan dari Nagari Talang Anau</p>
+        <div className="min-h-screen bg-slate-50">
+            {/* Hero */}
+            <div className="bg-slate-900 text-white py-12">
+                <div className="max-w-6xl mx-auto px-4">
+                    <h1 className="text-3xl font-bold mb-2">Berita & Pengumuman</h1>
+                    <p className="text-slate-300">Informasi terkini dari Nagari Talang Anau</p>
                 </div>
             </div>
 
-            {/* News Grid */}
-            <div className="container mx-auto px-4 py-16">
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {newsData.map((news) => (
-                        <Link to={`/news/${news.id}`} key={news.id} className="group block">
-                            <div className="aspect-video bg-slate-100 overflow-hidden mb-4">
-                                <img 
-                                    src={news.image} 
-                                    alt={news.title} 
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                                />
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-3 text-sm text-slate-400 mb-2">
-                                    <span className="text-blue-600 font-medium">{news.category}</span>
-                                    <span>•</span>
-                                    <span className="flex items-center gap-1">
-                                        <MdCalendarToday size={14} />
-                                        {news.date}
-                                    </span>
+            <div className="max-w-6xl mx-auto px-4 py-12">
+                {loading ? (
+                    <div className="text-center py-12 text-slate-500">Loading...</div>
+                ) : news.length === 0 ? (
+                    <div className="text-center py-12 text-slate-500">Belum ada berita</div>
+                ) : (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {news.map((item) => (
+                            <Link 
+                                key={item.id} 
+                                to={`/news/${item.id}`}
+                                className="bg-white border border-slate-200 overflow-hidden hover:border-slate-300 transition-colors"
+                            >
+                                <div className="h-48 bg-slate-100">
+                                    {item.image && (
+                                        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                                    )}
                                 </div>
-                                <h2 className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors mb-2">
-                                    {news.title}
-                                </h2>
-                                <p className="text-sm text-slate-500 line-clamp-2">
-                                    {news.summary}
-                                </p>
-                            </div>
-                        </Link>
-                    ))}
-                </div>
+                                <div className="p-6">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        {item.category && (
+                                            <span className="bg-blue-100 text-blue-700 text-xs px-2 py-1">{item.category}</span>
+                                        )}
+                                        <span className="text-xs text-slate-500">
+                                            {item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : ''}
+                                        </span>
+                                    </div>
+                                    <h3 className="font-bold text-slate-900 mb-2 line-clamp-2">{item.title}</h3>
+                                    <p className="text-sm text-slate-600 line-clamp-2">{item.summary || ''}</p>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

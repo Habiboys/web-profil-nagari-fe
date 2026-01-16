@@ -1,0 +1,197 @@
+import { useEffect, useState } from 'react';
+import { MdSave } from 'react-icons/md';
+import api from '../../api/axios';
+import ENDPOINTS from '../../api/endpoints';
+
+const AdminSettings = () => {
+    const [activeTab, setActiveTab] = useState('profile');
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    
+    const [profile, setProfile] = useState({ name: '', vision: '', email: '', phone: '', address: '' });
+    const [demographics, setDemographics] = useState({ totalPopulation: 0, totalFamilies: 0, maleCount: 0, femaleCount: 0 });
+    const [geography, setGeography] = useState({ totalArea: 0, northBoundary: '', southBoundary: '', westBoundary: '', eastBoundary: '' });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [profileRes, demoRes, geoRes] = await Promise.all([
+                    api.get(ENDPOINTS.PROFILE.GET),
+                    api.get(ENDPOINTS.DEMOGRAPHICS.GET),
+                    api.get(ENDPOINTS.GEOGRAPHY.GET),
+                ]);
+                
+                const p = profileRes.data?.data || profileRes.data || {};
+                const d = demoRes.data?.data || demoRes.data || {};
+                const g = geoRes.data?.data || geoRes.data || {};
+                
+                setProfile({ name: p.name || '', vision: p.vision || '', email: p.email || '', phone: p.phone || '', address: p.address || '' });
+                setDemographics({ totalPopulation: d.totalPopulation || 0, totalFamilies: d.totalFamilies || 0, maleCount: d.maleCount || 0, femaleCount: d.femaleCount || 0 });
+                setGeography({ totalArea: g.totalArea || 0, northBoundary: g.northBoundary || '', southBoundary: g.southBoundary || '', westBoundary: g.westBoundary || '', eastBoundary: g.eastBoundary || '' });
+            } catch (error) {
+                console.error('Failed to fetch:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleSaveProfile = async () => {
+        setSaving(true);
+        try {
+            await api.put(ENDPOINTS.PROFILE.UPDATE(1), profile);
+            alert('Profil berhasil disimpan');
+        } catch (error) {
+            alert('Gagal menyimpan profil');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleSaveDemographics = async () => {
+        setSaving(true);
+        try {
+            await api.put(ENDPOINTS.DEMOGRAPHICS.UPDATE(1), demographics);
+            alert('Demografi berhasil disimpan');
+        } catch (error) {
+            alert('Gagal menyimpan demografi');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleSaveGeography = async () => {
+        setSaving(true);
+        try {
+            await api.put(ENDPOINTS.GEOGRAPHY.UPDATE(1), geography);
+            alert('Geografi berhasil disimpan');
+        } catch (error) {
+            alert('Gagal menyimpan geografi');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const tabs = [
+        { id: 'profile', label: 'Profil Nagari' },
+        { id: 'demographics', label: 'Demografi' },
+        { id: 'geography', label: 'Geografi' },
+    ];
+
+    if (loading) return <div className="text-center py-12 text-slate-500">Loading...</div>;
+
+    return (
+        <div>
+            <h1 className="text-2xl font-bold text-slate-900 mb-6">Pengaturan</h1>
+
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 mb-6">
+                {tabs.map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-6 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                            activeTab === tab.id 
+                                ? 'border-blue-600 text-blue-600' 
+                                : 'border-transparent text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Profile Tab */}
+            {activeTab === 'profile' && (
+                <div className="bg-white border border-slate-200 p-6">
+                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Nama Nagari</label>
+                            <input type="text" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                            <input type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Telepon</label>
+                            <input type="text" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Alamat</label>
+                            <input type="text" value={profile.address} onChange={(e) => setProfile({ ...profile, address: e.target.value })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                    </div>
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Visi</label>
+                        <textarea value={profile.vision} onChange={(e) => setProfile({ ...profile, vision: e.target.value })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none h-32 resize-none" />
+                    </div>
+                    <button onClick={handleSaveProfile} disabled={saving} className="bg-blue-600 text-white px-6 py-2 flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50">
+                        <MdSave size={18} /> {saving ? 'Menyimpan...' : 'Simpan Profil'}
+                    </button>
+                </div>
+            )}
+
+            {/* Demographics Tab */}
+            {activeTab === 'demographics' && (
+                <div className="bg-white border border-slate-200 p-6">
+                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Total Penduduk</label>
+                            <input type="number" value={demographics.totalPopulation} onChange={(e) => setDemographics({ ...demographics, totalPopulation: parseInt(e.target.value) || 0 })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Jumlah KK</label>
+                            <input type="number" value={demographics.totalFamilies} onChange={(e) => setDemographics({ ...demographics, totalFamilies: parseInt(e.target.value) || 0 })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Laki-laki</label>
+                            <input type="number" value={demographics.maleCount} onChange={(e) => setDemographics({ ...demographics, maleCount: parseInt(e.target.value) || 0 })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Perempuan</label>
+                            <input type="number" value={demographics.femaleCount} onChange={(e) => setDemographics({ ...demographics, femaleCount: parseInt(e.target.value) || 0 })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                    </div>
+                    <button onClick={handleSaveDemographics} disabled={saving} className="bg-blue-600 text-white px-6 py-2 flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50">
+                        <MdSave size={18} /> {saving ? 'Menyimpan...' : 'Simpan Demografi'}
+                    </button>
+                </div>
+            )}
+
+            {/* Geography Tab */}
+            {activeTab === 'geography' && (
+                <div className="bg-white border border-slate-200 p-6">
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Luas Wilayah (Ha)</label>
+                        <input type="number" value={geography.totalArea} onChange={(e) => setGeography({ ...geography, totalArea: parseInt(e.target.value) || 0 })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none max-w-xs" />
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Batas Utara</label>
+                            <input type="text" value={geography.northBoundary} onChange={(e) => setGeography({ ...geography, northBoundary: e.target.value })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Batas Selatan</label>
+                            <input type="text" value={geography.southBoundary} onChange={(e) => setGeography({ ...geography, southBoundary: e.target.value })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Batas Barat</label>
+                            <input type="text" value={geography.westBoundary} onChange={(e) => setGeography({ ...geography, westBoundary: e.target.value })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Batas Timur</label>
+                            <input type="text" value={geography.eastBoundary} onChange={(e) => setGeography({ ...geography, eastBoundary: e.target.value })} className="w-full px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none" />
+                        </div>
+                    </div>
+                    <button onClick={handleSaveGeography} disabled={saving} className="bg-blue-600 text-white px-6 py-2 flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50">
+                        <MdSave size={18} /> {saving ? 'Menyimpan...' : 'Simpan Geografi'}
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default AdminSettings;

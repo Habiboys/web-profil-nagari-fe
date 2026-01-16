@@ -10,11 +10,10 @@ const api = axios.create({
 // Add a request interceptor
 api.interceptors.request.use(
     (config) => {
-        // You can add auth tokens here if needed
-        // const token = localStorage.getItem('token');
-        // if (token) {
-        //   config.headers.Authorization = `Bearer ${token}`;
-        // }
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
         return config;
     },
     (error) => {
@@ -28,7 +27,10 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
-        // Handle global errors here, e.g., redirect to login on 401
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = '/admin/login';
+        }
         return Promise.reject(error);
     }
 );

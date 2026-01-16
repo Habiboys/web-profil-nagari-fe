@@ -1,19 +1,60 @@
+import { useEffect, useState } from 'react';
 import * as Icons from 'react-icons/md';
 import { MdArrowForward, MdCalendarToday } from 'react-icons/md';
 import { Link } from 'react-router-dom';
+import api from '../api/axios';
+import ENDPOINTS from '../api/endpoints';
 import MapSection from '../components/MapSection';
-import ProductCard from '../components/ProductCard';
 import SectionHeader from '../components/SectionHeader';
-import { heroShortcuts, marketplaceData, newsData, potensiData, profileData, statsData, villageStructure } from '../data/mockData';
+import { heroShortcuts, potensiData, statsData } from '../data/mockData';
 
 const Home = () => {
-    const officials = villageStructure.slice(0, 4); 
+    const [profile, setProfile] = useState(null);
+    const [officials, setOfficials] = useState([]);
+    const [news, setNews] = useState([]);
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [profileRes, officialsRes, newsRes, productsRes] = await Promise.all([
+                    api.get(ENDPOINTS.PROFILE.GET),
+                    api.get(ENDPOINTS.OFFICIALS.GET_ALL),
+                    api.get(ENDPOINTS.NEWS.GET_ALL),
+                    api.get(ENDPOINTS.PRODUCTS.GET_ALL),
+                ]);
+                setProfile(profileRes.data?.data || profileRes.data);
+                setOfficials((officialsRes.data || []).slice(0, 4));
+                setNews((newsRes.data || []).slice(0, 3));
+                setProducts((productsRes.data || []).slice(0, 3));
+            } catch (error) {
+                console.error('Failed to fetch home data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
+    };
+
+    // Fallback to mock data if API fails
+    const displayProfile = profile || { 
+        name: 'Nagari Talang Anau', 
+        kecamatan: 'Gunuang Omeh', 
+        kabupaten: 'Lima Puluh Kota',
+        headName: 'Wali Nagari',
+        headPhoto: 'https://placehold.co/300x400',
+        headMessage: 'Selamat datang di website resmi Nagari Talang Anau.'
+    };
 
     return (
         <div>
             {/* Hero Section with Background Image */}
             <section className="relative min-h-[85vh] flex items-center">
-                {/* Background Image */}
                 <div 
                     className="absolute inset-0 bg-cover bg-center"
                     style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80)' }}
@@ -21,15 +62,14 @@ const Home = () => {
                     <div className="absolute inset-0 bg-slate-900/70"></div>
                 </div>
                 
-                {/* Content */}
                 <div className="container mx-auto px-4 relative z-10 text-white text-center py-20">
                     <p className="text-blue-300 font-medium uppercase tracking-widest text-sm mb-3">Selamat Datang di</p>
-                    <h1 className="text-4xl md:text-6xl font-bold mb-4">{profileData.name}</h1>
+                    <h1 className="text-4xl md:text-6xl font-bold mb-4">{displayProfile.name}</h1>
                     <p className="text-slate-300 mb-8 max-w-xl mx-auto text-lg">
-                        {profileData.kecamatan}, {profileData.kabupaten}
+                        {displayProfile.kecamatan}, {displayProfile.kabupaten}
                     </p>
                     <div className="flex flex-wrap justify-center gap-4">
-                        <Link to="/profile" className="bg-white text-slate-900 px-8 py-3 font-medium hover:bg-slate-100 transition-colors">
+                        <Link to="/tentang" className="bg-white text-slate-900 px-8 py-3 font-medium hover:bg-slate-100 transition-colors">
                             Profil Nagari
                         </Link>
                         <Link to="/infographics" className="border border-white text-white px-8 py-3 font-medium hover:bg-white hover:text-slate-900 transition-colors">
@@ -79,15 +119,15 @@ const Home = () => {
                 <div className="container mx-auto px-4">
                     <div className="flex flex-col md:flex-row items-center gap-10 max-w-4xl mx-auto">
                         <div className="w-52 h-52 bg-slate-200 shrink-0 border border-slate-300">
-                            <img src={profileData.headOfVillage.photo} alt={profileData.headOfVillage.name} className="w-full h-full object-cover" />
+                            <img src={displayProfile.headPhoto || 'https://placehold.co/300x400'} alt={displayProfile.headName} className="w-full h-full object-cover" />
                         </div>
                         <div>
                             <p className="text-sm text-blue-600 font-medium uppercase tracking-wider mb-3">Sambutan Wali Nagari</p>
                             <blockquote className="text-xl text-slate-700 italic mb-4 leading-relaxed">
-                                "{profileData.headOfVillage.message}"
+                                "{displayProfile.headMessage || 'Selamat datang di website resmi Nagari Talang Anau.'}"
                             </blockquote>
-                            <p className="font-bold text-slate-900">{profileData.headOfVillage.name}</p>
-                            <p className="text-sm text-slate-500">Wali {profileData.name}</p>
+                            <p className="font-bold text-slate-900">{displayProfile.headName}</p>
+                            <p className="text-sm text-slate-500">Wali {displayProfile.name}</p>
                         </div>
                     </div>
                 </div>
@@ -95,20 +135,22 @@ const Home = () => {
 
             {/* Perangkat Nagari */}
             <section className="container mx-auto px-4 py-24">
-                <SectionHeader title="Perangkat Nagari" subtitle={`Jajaran pemerintahan ${profileData.name}`} />
+                <SectionHeader title="Perangkat Nagari" subtitle={`Jajaran pemerintahan ${displayProfile.name}`} />
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {officials.map((person, idx) => (
-                        <div key={idx} className="text-center">
+                    {officials.length > 0 ? officials.map((person) => (
+                        <div key={person.id} className="text-center">
                             <div className="w-full aspect-square bg-slate-100 mb-3 border border-slate-200">
-                                <img src={person.image} alt={person.name} className="w-full h-full object-cover" />
+                                {person.image && <img src={person.image} alt={person.name} className="w-full h-full object-cover" />}
                             </div>
                             <h3 className="font-medium text-slate-900">{person.name}</h3>
                             <p className="text-sm text-slate-500">{person.position}</p>
                         </div>
-                    ))}
+                    )) : (
+                        <p className="col-span-4 text-center text-slate-500">Belum ada data perangkat</p>
+                    )}
                 </div>
                 <div className="text-center mt-8">
-                    <Link to="/profile" className="text-blue-600 hover:underline font-medium">
+                    <Link to="/struktur" className="text-blue-600 hover:underline font-medium">
                         Lihat Struktur Lengkap →
                     </Link>
                 </div>
@@ -124,65 +166,54 @@ const Home = () => {
                         </Link>
                     </div>
                     <div className="grid md:grid-cols-3 gap-6">
-                        {newsData.map((news) => (
-                            <div key={news.id} className="bg-white border border-slate-200">
-                                <img src={news.image} alt={news.title} className="w-full h-44 object-cover" />
+                        {news.length > 0 ? news.map((item) => (
+                            <div key={item.id} className="bg-white border border-slate-200">
+                                <div className="h-44 bg-slate-100">
+                                    {item.image && <img src={item.image} alt={item.title} className="w-full h-44 object-cover" />}
+                                </div>
                                 <div className="p-5">
                                     <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
                                         <MdCalendarToday size={12} />
-                                        <span>{news.date}</span>
-                                        <span className="text-blue-600">• {news.category}</span>
+                                        <span>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : ''}</span>
+                                        {item.category && <span className="text-blue-600">• {item.category}</span>}
                                     </div>
                                     <h3 className="font-medium text-slate-900 mb-2 line-clamp-2">
-                                        <Link to={`/news/${news.id}`} className="hover:text-blue-600">{news.title}</Link>
+                                        <Link to={`/news/${item.id}`} className="hover:text-blue-600">{item.title}</Link>
                                     </h3>
-                                    <p className="text-sm text-slate-600 line-clamp-2">{news.summary}</p>
+                                    <p className="text-sm text-slate-600 line-clamp-2">{item.summary}</p>
                                 </div>
                             </div>
-                        ))}
+                        )) : (
+                            <p className="col-span-3 text-center text-slate-500">Belum ada berita</p>
+                        )}
                     </div>
                 </div>
             </section>
 
-            {/* Potensi Nagari - Carousel Style */}
+            {/* Potensi Nagari */}
             <section className="py-24 overflow-hidden">
                 <div className="container mx-auto px-4">
                     <SectionHeader title="Potensi Nagari" subtitle="Keunggulan Daerah" />
                 </div>
-                
-                {/* Horizontal Scroll Container */}
                 <div className="relative">
                     <div className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 md:px-8 pb-4">
-                        {/* Spacer for centering on large screens */}
                         <div className="shrink-0 w-[calc((100vw-1280px)/2)] hidden xl:block"></div>
-                        
                         {potensiData.map((item, idx) => (
-                            <div 
-                                key={idx} 
-                                className="shrink-0 w-80 h-96 snap-start relative group cursor-pointer"
-                            >
-                                {/* Background Image */}
+                            <div key={idx} className="shrink-0 w-80 h-96 snap-start relative group cursor-pointer">
                                 <div 
                                     className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                                     style={{ backgroundImage: `url(${item.image || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80'})` }}
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent"></div>
                                 </div>
-                                
-                                {/* Content */}
                                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                                     <span className="inline-block bg-blue-600 text-white text-xs font-medium uppercase tracking-wider px-3 py-1 mb-3">
                                         {item.category}
                                     </span>
                                     <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-                                    <p className="text-slate-300 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                        Lihat selengkapnya →
-                                    </p>
                                 </div>
                             </div>
                         ))}
-                        
-                        {/* Spacer for centering on large screens */}
                         <div className="shrink-0 w-[calc((100vw-1280px)/2)] hidden xl:block"></div>
                     </div>
                 </div>
@@ -193,9 +224,19 @@ const Home = () => {
                 <div className="container mx-auto px-4">
                     <SectionHeader title="Produk Nagari" subtitle="Produk unggulan dari masyarakat nagari" />
                     <div className="grid md:grid-cols-3 gap-6">
-                        {marketplaceData.slice(0, 3).map((product) => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
+                        {products.length > 0 ? products.map((product) => (
+                            <Link key={product.id} to={`/marketplace/${product.id}`} className="bg-white border border-slate-200 hover:border-slate-300 transition-colors">
+                                <div className="h-48 bg-slate-100">
+                                    {product.image && <img src={product.image} alt={product.name} className="w-full h-48 object-cover" />}
+                                </div>
+                                <div className="p-5">
+                                    <h3 className="font-medium text-slate-900 mb-2">{product.name}</h3>
+                                    <p className="text-lg font-bold text-green-600">{formatPrice(product.price)}</p>
+                                </div>
+                            </Link>
+                        )) : (
+                            <p className="col-span-3 text-center text-slate-500">Belum ada produk</p>
+                        )}
                     </div>
                     <div className="text-center mt-10">
                         <Link to="/marketplace" className="inline-flex items-center gap-2 bg-slate-900 text-white px-8 py-3 font-medium hover:bg-slate-800 transition-colors">
