@@ -11,7 +11,8 @@ const News = () => {
         const fetchNews = async () => {
             try {
                 const res = await api.get(ENDPOINTS.NEWS.GET_ALL);
-                setNews(res.data || []);
+                const data = res.data?.data || res.data || [];
+                setNews(Array.isArray(data) ? data : []);
             } catch (error) {
                 console.error('Failed to fetch news:', error);
             } finally {
@@ -24,10 +25,17 @@ const News = () => {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Hero */}
-            <div className="bg-slate-900 text-white py-12">
-                <div className="max-w-6xl mx-auto px-4">
-                    <h1 className="text-3xl font-bold mb-2">Berita & Pengumuman</h1>
-                    <p className="text-slate-300">Informasi terkini dari Nagari Talang Anau</p>
+            <div className="relative py-24">
+                <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1920&q=80)' }}
+                >
+                    <div className="absolute inset-0 bg-slate-900/75"></div>
+                </div>
+                <div className="max-w-6xl mx-auto px-4 relative z-10 text-white text-center">
+                    <p className="text-blue-300 font-medium uppercase tracking-widest text-sm mb-2">Informasi Terkini</p>
+                    <h1 className="text-3xl md:text-5xl font-bold mb-3">Berita & Pengumuman</h1>
+                    <p className="text-slate-300">Kabar terbaru dari Nagari Talang Anau</p>
                 </div>
             </div>
 

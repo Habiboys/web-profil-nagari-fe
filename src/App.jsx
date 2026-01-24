@@ -25,9 +25,11 @@ import AdminFacilities from './pages/admin/AdminFacilities';
 import AdminGallery from './pages/admin/AdminGallery';
 import AdminJorongs from './pages/admin/AdminJorongs';
 import AdminLogin from './pages/admin/AdminLogin';
+import AdminMedia from './pages/admin/AdminMedia';
 import AdminMissions from './pages/admin/AdminMissions';
 import AdminNews from './pages/admin/AdminNews';
 import AdminOfficials from './pages/admin/AdminOfficials';
+import AdminPotensi from './pages/admin/AdminPotensi';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminTourism from './pages/admin/AdminTourism';
@@ -66,12 +68,14 @@ function App() {
           <Route path="products" element={<AdminProducts />} />
           <Route path="officials" element={<AdminOfficials />} />
           <Route path="tourism" element={<AdminTourism />} />
+          <Route path="potensi" element={<AdminPotensi />} />
           <Route path="gallery" element={<AdminGallery />} />
           <Route path="facilities" element={<AdminFacilities />} />
           <Route path="commodities" element={<AdminCommodities />} />
           <Route path="missions" element={<AdminMissions />} />
           <Route path="jorongs" element={<AdminJorongs />} />
           <Route path="assets" element={<AdminAssets />} />
+          <Route path="media" element={<AdminMedia />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Routes>

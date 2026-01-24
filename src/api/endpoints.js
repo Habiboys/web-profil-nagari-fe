@@ -81,6 +81,21 @@ const ENDPOINTS = {
         GET: '/geography',
         UPDATE: (id) => `/geography/${id}`,
     },
+    POTENSI: {
+        GET_ALL: '/potensi',
+        GET_ONE: (id) => `/potensi/${id}`,
+        CREATE: '/potensi',
+        UPDATE: (id) => `/potensi/${id}`,
+        DELETE: (id) => `/potensi/${id}`,
+    },
+    MEDIA: {
+        GET_ALL: '/media',
+        GET_ONE: (id) => `/media/${id}`,
+        UPLOAD: '/media',
+        UPDATE: (id) => `/media/${id}`,
+        DELETE: (id) => `/media/${id}`,
+        BULK_DELETE: '/media/bulk-delete',
+    },
     UPLOAD: {
         SINGLE: '/upload',
         MULTIPLE: '/upload/multiple',

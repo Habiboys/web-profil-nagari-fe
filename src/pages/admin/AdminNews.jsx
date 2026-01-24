@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { MdAdd, MdClose, MdDelete, MdEdit, MdSearch, MdUpload } from 'react-icons/md';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import { MdAdd, MdClose, MdDelete, MdEdit, MdPhotoLibrary, MdSearch } from 'react-icons/md';
 import api from '../../api/axios';
 import ENDPOINTS from '../../api/endpoints';
+import MediaPicker from '../../components/MediaPicker';
+import RichTextEditor from '../../components/RichTextEditor';
 
 const AdminNews = () => {
     const [news, setNews] = useState([]);
@@ -11,24 +11,13 @@ const AdminNews = () => {
     const [search, setSearch] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
-    const [uploading, setUploading] = useState(false);
+    const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         content: '',
         category: '',
         image: '',
     });
-
-    const quillModules = {
-        toolbar: [
-            [{ 'header': [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-            [{ 'align': [] }],
-            ['link'],
-            ['clean']
-        ],
-    };
 
     const fetchNews = async () => {
         try {
@@ -45,25 +34,8 @@ const AdminNews = () => {
         fetchNews();
     }, []);
 
-    const handleImageUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
-
-        setUploading(true);
-        try {
-            const response = await api.post(ENDPOINTS.UPLOAD.SINGLE, formDataUpload, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            setFormData({ ...formData, image: response.data?.file?.url || response.data?.url });
-        } catch (error) {
-            console.error('Failed to upload image:', error);
-            alert('Gagal upload gambar');
-        } finally {
-            setUploading(false);
-        }
+    const handleImageSelect = (imagePath) => {
+        setFormData({ ...formData, image: imagePath });
     };
 
     const handleSubmit = async (e) => {
@@ -240,23 +212,20 @@ const AdminNews = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">Gambar</label>
+                                    <label className="block text-sm font-medium text-slate-700 mb-1">Gambar Cover</label>
                                     <div className="flex gap-2">
-                                        <label className="flex-1 flex items-center gap-2 px-4 py-2 border border-slate-300 cursor-pointer hover:bg-slate-50">
-                                            <MdUpload size={20} className="text-slate-500" />
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setMediaPickerOpen(true)} 
+                                            className="flex-1 flex items-center gap-2 px-4 py-2 border border-slate-300 hover:bg-slate-50"
+                                        >
+                                            <MdPhotoLibrary size={20} className="text-slate-500" />
                                             <span className="text-sm text-slate-600 truncate">
-                                                {uploading ? 'Uploading...' : formData.image ? 'Ganti gambar' : 'Pilih gambar'}
+                                                {formData.image ? 'Ganti gambar' : 'Pilih dari Media'}
                                             </span>
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleImageUpload}
-                                                className="hidden"
-                                                disabled={uploading}
-                                            />
-                                        </label>
+                                        </button>
                                         {formData.image && (
-                                            <img src={formData.image} alt="Preview" className="w-10 h-10 object-cover" />
+                                            <img src={formData.image} alt="Preview" className="w-10 h-10 object-cover border" />
                                         )}
                                     </div>
                                 </div>
@@ -264,12 +233,10 @@ const AdminNews = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Konten</label>
-                                <ReactQuill
-                                    theme="snow"
+                                <RichTextEditor
                                     value={formData.content}
                                     onChange={(value) => setFormData({ ...formData, content: value })}
-                                    modules={quillModules}
-                                    className="bg-white"
+                                    placeholder="Tulis isi berita..."
                                 />
                             </div>
 
@@ -293,10 +260,12 @@ const AdminNews = () => {
                 </div>
             )}
 
-            <style>{`
-                .ql-container { min-height: 150px; }
-                .ql-editor { min-height: 150px; }
-            `}</style>
+            <MediaPicker 
+                isOpen={mediaPickerOpen} 
+                onClose={() => setMediaPickerOpen(false)} 
+                onSelect={handleImageSelect}
+                currentImage={formData.image}
+            />
         </div>
     );
 };

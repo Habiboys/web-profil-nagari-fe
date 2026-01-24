@@ -15,7 +15,8 @@ const VisiMisi = () => {
                     api.get(ENDPOINTS.MISSIONS.GET_ALL),
                 ]);
                 setProfile(profileRes.data?.data || profileRes.data);
-                setMissions(missionsRes.data || []);
+                const missionsData = missionsRes.data?.data || missionsRes.data || [];
+                setMissions(Array.isArray(missionsData) ? missionsData : []);
             } catch (error) {
                 console.error('Failed to fetch data:', error);
             } finally {
@@ -36,9 +37,16 @@ const VisiMisi = () => {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Hero */}
-            <div className="bg-slate-900 text-white py-12">
-                <div className="max-w-6xl mx-auto px-4">
-                    <h1 className="text-3xl font-bold mb-2">Visi & Misi</h1>
+            <div className="relative py-24">
+                <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1920&q=80)' }}
+                >
+                    <div className="absolute inset-0 bg-slate-900/75"></div>
+                </div>
+                <div className="max-w-6xl mx-auto px-4 relative z-10 text-white text-center">
+                    <p className="text-blue-300 font-medium uppercase tracking-widest text-sm mb-2">Arah Pembangunan</p>
+                    <h1 className="text-3xl md:text-5xl font-bold mb-3">Visi & Misi</h1>
                     <p className="text-slate-300">Nagari Talang Anau</p>
                 </div>
             </div>

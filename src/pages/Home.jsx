@@ -6,28 +6,52 @@ import api from '../api/axios';
 import ENDPOINTS from '../api/endpoints';
 import MapSection from '../components/MapSection';
 import SectionHeader from '../components/SectionHeader';
-import { heroShortcuts, potensiData, statsData } from '../data/mockData';
+import { heroShortcuts } from '../data/mockData';
 
 const Home = () => {
     const [profile, setProfile] = useState(null);
     const [officials, setOfficials] = useState([]);
     const [news, setNews] = useState([]);
     const [products, setProducts] = useState([]);
+    const [demographics, setDemographics] = useState(null);
+    const [geography, setGeography] = useState(null);
+    const [jorongs, setJorongs] = useState([]);
+    const [potensi, setPotensi] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [profileRes, officialsRes, newsRes, productsRes] = await Promise.all([
+                const [profileRes, officialsRes, newsRes, productsRes, demoRes, geoRes, jorongRes, potensiRes] = await Promise.all([
                     api.get(ENDPOINTS.PROFILE.GET),
                     api.get(ENDPOINTS.OFFICIALS.GET_ALL),
                     api.get(ENDPOINTS.NEWS.GET_ALL),
                     api.get(ENDPOINTS.PRODUCTS.GET_ALL),
+                    api.get(ENDPOINTS.DEMOGRAPHICS.GET),
+                    api.get(ENDPOINTS.GEOGRAPHY.GET),
+                    api.get(ENDPOINTS.JORONGS.GET_ALL),
+                    api.get(ENDPOINTS.POTENSI.GET_ALL),
                 ]);
                 setProfile(profileRes.data?.data || profileRes.data);
-                setOfficials((officialsRes.data || []).slice(0, 4));
-                setNews((newsRes.data || []).slice(0, 3));
-                setProducts((productsRes.data || []).slice(0, 3));
+                
+                // Handle array responses properly
+                const officialsData = officialsRes.data?.data || officialsRes.data || [];
+                setOfficials(Array.isArray(officialsData) ? officialsData.slice(0, 4) : []);
+                
+                const newsData = newsRes.data?.data || newsRes.data || [];
+                setNews(Array.isArray(newsData) ? newsData.slice(0, 3) : []);
+                
+                const productsData = productsRes.data?.data || productsRes.data || [];
+                setProducts(Array.isArray(productsData) ? productsData.slice(0, 3) : []);
+                
+                setDemographics(demoRes.data?.data || demoRes.data);
+                setGeography(geoRes.data?.data || geoRes.data);
+                
+                const jorongsData = jorongRes.data?.data || jorongRes.data || [];
+                setJorongs(Array.isArray(jorongsData) ? jorongsData : []);
+                
+                const potensiData = potensiRes.data?.data || potensiRes.data || [];
+                setPotensi(Array.isArray(potensiData) ? potensiData : []);
             } catch (error) {
                 console.error('Failed to fetch home data:', error);
             } finally {
@@ -50,6 +74,14 @@ const Home = () => {
         headPhoto: 'https://placehold.co/300x400',
         headMessage: 'Selamat datang di website resmi Nagari Talang Anau.'
     };
+
+    // Compute stats dynamically from server data
+    const statsData = [
+        { label: 'Penduduk', value: demographics?.totalPopulation?.toLocaleString('id-ID') || '-', icon: 'MdPeople' },
+        { label: 'Kepala Keluarga', value: demographics?.totalFamilies?.toLocaleString('id-ID') || '-', icon: 'MdFamilyRestroom' },
+        { label: 'Luas Wilayah', value: geography?.totalArea ? `${Number(geography.totalArea).toLocaleString('id-ID')} Ha` : '-', icon: 'MdMap' },
+        { label: 'Jorong', value: jorongs.length > 0 ? jorongs.length.toString() : '-', icon: 'MdHomeWork' }
+    ];
 
     return (
         <div>
@@ -198,8 +230,8 @@ const Home = () => {
                 <div className="relative">
                     <div className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 md:px-8 pb-4">
                         <div className="shrink-0 w-[calc((100vw-1280px)/2)] hidden xl:block"></div>
-                        {potensiData.map((item, idx) => (
-                            <div key={idx} className="shrink-0 w-80 h-96 snap-start relative group cursor-pointer">
+                        {(potensi.length > 0 ? potensi : [{ id: 1, title: 'Belum ada data', category: 'Info', image: '' }]).map((item, idx) => (
+                            <div key={item.id || idx} className="shrink-0 w-80 h-96 snap-start relative group cursor-pointer">
                                 <div 
                                     className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                                     style={{ backgroundImage: `url(${item.image || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80'})` }}

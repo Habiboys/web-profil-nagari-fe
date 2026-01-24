@@ -36,9 +36,16 @@ const TentangNagari = () => {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Hero */}
-            <div className="bg-slate-900 text-white py-12">
-                <div className="max-w-6xl mx-auto px-4">
-                    <h1 className="text-3xl font-bold mb-2">Tentang Nagari</h1>
+            <div className="relative py-24">
+                <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80)' }}
+                >
+                    <div className="absolute inset-0 bg-slate-900/75"></div>
+                </div>
+                <div className="max-w-6xl mx-auto px-4 relative z-10 text-white text-center">
+                    <p className="text-blue-300 font-medium uppercase tracking-widest text-sm mb-2">Profil Daerah</p>
+                    <h1 className="text-3xl md:text-5xl font-bold mb-3">Tentang Nagari</h1>
                     <p className="text-slate-300">Informasi umum tentang Nagari Talang Anau</p>
                 </div>
             </div>

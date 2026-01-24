@@ -11,7 +11,8 @@ const Marketplace = () => {
         const fetchProducts = async () => {
             try {
                 const res = await api.get(ENDPOINTS.PRODUCTS.GET_ALL);
-                setProducts(res.data || []);
+                const data = res.data?.data || res.data || [];
+                setProducts(Array.isArray(data) ? data : []);
             } catch (error) {
                 console.error('Failed to fetch products:', error);
             } finally {
@@ -28,10 +29,17 @@ const Marketplace = () => {
     return (
         <div className="min-h-screen bg-slate-50">
             {/* Hero */}
-            <div className="bg-slate-900 text-white py-12">
-                <div className="max-w-6xl mx-auto px-4">
-                    <h1 className="text-3xl font-bold mb-2">Pasar Nagari</h1>
-                    <p className="text-slate-300">Produk unggulan dari Nagari Talang Anau</p>
+            <div className="relative py-24">
+                <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&q=80)' }}
+                >
+                    <div className="absolute inset-0 bg-slate-900/75"></div>
+                </div>
+                <div className="max-w-6xl mx-auto px-4 relative z-10 text-white text-center">
+                    <p className="text-blue-300 font-medium uppercase tracking-widest text-sm mb-2">Belanja Produk Lokal</p>
+                    <h1 className="text-3xl md:text-5xl font-bold mb-3">Pasar Nagari</h1>
+                    <p className="text-slate-300">Produk unggulan dari masyarakat Nagari Talang Anau</p>
                 </div>
             </div>
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MdAccountBalance, MdArticle, MdDashboard, MdFlag, MdGroup, MdImage, MdLandscape, MdLocationCity, MdLogout, MdMenu, MdPark, MdPerson, MdSchool, MdSettings, MdStore } from 'react-icons/md';
+import { MdAccountBalance, MdArticle, MdAutoAwesome, MdDashboard, MdFlag, MdGroup, MdImage, MdLandscape, MdLocationCity, MdLogout, MdMenu, MdPark, MdPerson, MdPhotoLibrary, MdSchool, MdSettings, MdStore } from 'react-icons/md';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 
@@ -19,12 +19,14 @@ const AdminLayout = () => {
         { name: 'Produk', path: '/admin/products', icon: MdStore },
         { name: 'Perangkat', path: '/admin/officials', icon: MdGroup },
         { name: 'Wisata', path: '/admin/tourism', icon: MdLandscape },
+        { name: 'Potensi', path: '/admin/potensi', icon: MdAutoAwesome },
         { name: 'Galeri', path: '/admin/gallery', icon: MdImage },
         { name: 'Fasilitas', path: '/admin/facilities', icon: MdSchool },
         { name: 'Komoditi', path: '/admin/commodities', icon: MdPark },
         { name: 'Misi', path: '/admin/missions', icon: MdFlag },
         { name: 'Jorong', path: '/admin/jorongs', icon: MdLocationCity },
         { name: 'Aset', path: '/admin/assets', icon: MdAccountBalance },
+        { name: 'Media', path: '/admin/media', icon: MdPhotoLibrary },
         { name: 'Pengaturan', path: '/admin/settings', icon: MdSettings },
     ];
 
