@@ -99,6 +99,7 @@ const AdminOfficials = () => {
         'Kaur Tata Usaha dan Umum',
         'Kaur Keuangan',
         'Kaur Perencanaan',
+        'Staf Kaur Tata Usaha & Umum',
         'Kepala Jorong Talang Anau',
         'Kepala Jorong Simpang Padang',
         'Kepala Jorong Luak Begak',
