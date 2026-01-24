@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import ENDPOINTS from '../api/endpoints';
+import { getImageUrl } from '../utils/imageUrl';
 
 const StrukturNagari = () => {
     const [officials, setOfficials] = useState([]);
@@ -21,139 +22,155 @@ const StrukturNagari = () => {
         fetchData();
     }, []);
 
-    // Group officials by role
-    const waliNagari = officials.find(o => o.position?.toLowerCase().includes('wali nagari'));
-    const lpm = officials.find(o => o.position?.toLowerCase().includes('lpm'));
-    const bamus = officials.find(o => o.position?.toLowerCase().includes('bamus'));
-    const sekretaris = officials.find(o => o.position?.toLowerCase().includes('sekretaris'));
-    const kasiKaur = officials.filter(o => 
-        o.position?.toLowerCase().includes('kasi') || 
-        o.position?.toLowerCase().includes('kaur')
-    );
-    const kepalaJorong = officials.filter(o => 
-        o.position?.toLowerCase().includes('kepala jorong') || 
-        o.position?.toLowerCase().includes('jorong')
+    // Build tree structure
+    const buildTree = (items) => {
+        const map = {};
+        const roots = [];
+        
+        // Initialize map
+        items.forEach(item => {
+            map[item.id] = { ...item, children: [] };
+        });
+
+        // Connect nodes
+        items.forEach(item => {
+            if (item.parentId && map[item.parentId]) {
+                map[item.parentId].children.push(map[item.id]);
+            } else {
+                roots.push(map[item.id]);
+            }
+        });
+
+        // Sort by order
+        const sortNodes = (nodes) => {
+            nodes.sort((a, b) => (a.order || 0) - (b.order || 0));
+            nodes.forEach(node => {
+                if (node.children.length > 0) sortNodes(node.children);
+            });
+        };
+
+        sortNodes(roots);
+        return roots;
+    };
+
+    const treeData = buildTree(officials);
+
+    const TreeNode = ({ node }) => (
+        <li className="relative p-4 pt-12 flex flex-col items-center">
+            {/* Card */}
+            <div className={`relative z-10 border-2 border-slate-800 bg-white w-48 transition-transform hover:scale-105 ${node.position?.toLowerCase().includes('wali') ? 'border-4 border-black' : ''}`}>
+                <div className="aspect-[3/4] w-full bg-slate-200 overflow-hidden relative">
+                    {node.image ? (
+                        <img src={getImageUrl(node.image)} alt={node.name} className="w-full h-full object-cover" />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                            No Photo
+                        </div>
+                    )}
+                </div>
+                <div className="p-2 text-center border-t-2 border-slate-800">
+                    <div className="font-bold text-slate-900 uppercase text-xs leading-tight mb-1">{node.position}</div>
+                    <div className="text-xs text-slate-600 font-medium uppercase">{node.name}</div>
+                </div>
+            </div>
+
+            {/* Children */}
+            {node.children && node.children.length > 0 && (
+                <ul className="flex flex-row justify-center relative mt-0 pt-0">
+                    {node.children.map(child => (
+                        <TreeNode key={child.id} node={child} />
+                    ))}
+                </ul>
+            )}
+        </li>
     );
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <p className="text-slate-500">Loading...</p>
-            </div>
-        );
-    }
+    if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 overflow-x-auto">
+            {/* CSS for Tree Lines */}
+            <style>{`
+                .tree ul {
+                    display: flex;
+                    justify-content: center;
+                    position: relative;
+                }
+                .tree li {
+                    position: relative;
+                }
+                /* Vertical line from parent to children container */
+                .tree li::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 50%;
+                    border-left: 2px solid #333;
+                    width: 0;
+                    height: 48px; /* Connects to top padding */
+                    transform: translateX(-50%);
+                }
+                /* Remove connector for root */
+                .tree > ul > li::before {
+                    display: none;
+                }
+                /* Horizontal connector for children */
+                .tree ul ul::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 50%;
+                    border-left: 2px solid #333;
+                    width: 0;
+                    height: 20px;
+                }
+                /* Horizontal line connecting siblings */
+                .tree li::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 20px;
+                    border-top: 2px solid #333;
+                }
+                /* Hide line for first child left half */
+                .tree li:first-child::after {
+                    left: 50%;
+                    width: 50%;
+                }
+                /* Hide line for last child right half */
+                .tree li:last-child::after {
+                    right: 50%;
+                    width: 50%;
+                }
+                /* Single child doesn't need horizontal line */
+                .tree li:only-child::after {
+                    display: none;
+                }
+                /* Remove vertical line for leaf nodes */
+                /* Actually we don't need to remove it, but if no children, no UL, so no issue */
+            `}</style>
+
             {/* Hero */}
-            <div className="relative py-24">
-                <div 
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1920&q=80)' }}
-                >
-                    <div className="absolute inset-0 bg-slate-900/75"></div>
-                </div>
-                <div className="max-w-6xl mx-auto px-4 relative z-10 text-white text-center">
-                    <p className="text-blue-300 font-medium uppercase tracking-widest text-sm mb-2">Pemerintahan</p>
-                    <h1 className="text-3xl md:text-5xl font-bold mb-3">Struktur Organisasi</h1>
-                    <p className="text-slate-300">Pemerintahan Nagari Talang Anau Tahun 2025</p>
-                </div>
+            <div className="relative py-16 bg-slate-900 text-white text-center mb-12">
+                <h1 className="text-3xl font-bold uppercase mb-2">Struktur Organisasi</h1>
+                <p className="text-slate-300">Pemerintahan Nagari Talang Anau</p>
             </div>
 
-            <div className="max-w-6xl mx-auto px-4 py-12">
-                {/* Top Level: LPM - Wali Nagari - BAMUS */}
-                <div className="flex justify-center items-center gap-8 mb-8">
-                    {/* LPM */}
-                    {lpm && (
-                        <div className="border-2 border-green-500 bg-white px-6 py-3 text-center">
-                            <div className="font-bold text-green-700">{lpm.position}</div>
-                            <div className="text-sm text-slate-600">{lpm.name || '-'}</div>
-                        </div>
-                    )}
-
-                    <div className="text-2xl text-slate-400">⟷</div>
-
-                    {/* Wali Nagari */}
-                    {waliNagari && (
-                        <div className="border-2 border-green-500 bg-green-500 text-white px-8 py-4 text-center">
-                            <div className="font-bold">{waliNagari.position}</div>
-                            <div className="text-sm">{waliNagari.name}</div>
-                        </div>
-                    )}
-
-                    <div className="text-2xl text-slate-400">⟷</div>
-
-                    {/* BAMUS */}
-                    {bamus && (
-                        <div className="border-2 border-green-500 bg-white px-6 py-3 text-center">
-                            <div className="font-bold text-green-700">{bamus.position}</div>
-                            <div className="text-sm text-slate-600">{bamus.name || '-'}</div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Connector Line */}
-                <div className="flex justify-center mb-4">
-                    <div className="w-0.5 h-8 bg-slate-300"></div>
-                </div>
-
-                {/* Sekretaris Nagari */}
-                {sekretaris && (
-                    <div className="flex justify-center mb-8">
-                        <div className="border-2 border-green-500 bg-white px-8 py-4 text-center">
-                            <div className="font-bold text-green-700">{sekretaris.position}</div>
-                            <div className="text-sm text-slate-600">{sekretaris.name}</div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Connector Line */}
-                <div className="flex justify-center mb-4">
-                    <div className="w-0.5 h-8 bg-slate-300"></div>
-                </div>
-
-                {/* KASI & KAUR Grid */}
-                {kasiKaur.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-                        {kasiKaur.map((official) => (
-                            <div key={official.id} className="border-2 border-green-500 bg-white p-4 text-center">
-                                <div className="font-bold text-green-700 text-sm">{official.position}</div>
-                                <div className="text-xs text-slate-600 mt-1">{official.name}</div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Kepala Jorong Section */}
-                {kepalaJorong.length > 0 && (
-                    <>
-                        <div className="flex justify-center mb-8">
-                            <div className="border-2 border-green-500 bg-green-500 text-white px-8 py-3 text-center">
-                                <div className="font-bold">KEPALA JORONG</div>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-center mb-4">
-                            <div className="w-0.5 h-8 bg-slate-300"></div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-                            {kepalaJorong.map((official) => (
-                                <div key={official.id} className="border-2 border-green-500 bg-white p-4 text-center">
-                                    <div className="font-bold text-green-700">{official.position}</div>
-                                    <div className="text-sm text-slate-600 mt-1">{official.name}</div>
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                )}
-
-                {officials.length === 0 && (
-                    <div className="text-center py-12 text-slate-500">
-                        Belum ada data struktur organisasi
-                    </div>
-                )}
+            <div className="p-8 min-w-[1000px] flex justify-center tree pb-24">
+                <ul>
+                    {treeData.map(node => (
+                        <TreeNode key={node.id} node={node} />
+                    ))}
+                </ul>
             </div>
+            
+            {officials.length === 0 && (
+                <div className="text-center pb-12 text-slate-500">
+                    Belum ada data struktur organisasi
+                </div>
+            )}
         </div>
     );
 };
