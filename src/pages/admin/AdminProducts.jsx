@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
-import { MdAdd, MdClose, MdDelete, MdEdit, MdSearch, MdUpload } from 'react-icons/md';
+import { MdAdd, MdClose, MdDelete, MdEdit, MdPhotoLibrary, MdSearch } from 'react-icons/md';
+import { toast } from 'sonner';
 import api from '../../api/axios';
 import ENDPOINTS from '../../api/endpoints';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import MediaPicker from '../../components/MediaPicker';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const AdminProducts = () => {
     const [products, setProducts] = useState([]);
@@ -9,7 +13,9 @@ const AdminProducts = () => {
     const [search, setSearch] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
-    const [uploading, setUploading] = useState(false);
+    const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -24,6 +30,7 @@ const AdminProducts = () => {
             setProducts(response.data?.data || response.data || []);
         } catch (error) {
             console.error('Failed to fetch products:', error);
+            toast.error('Gagal mengambil data produk');
         } finally {
             setLoading(false);
         }
@@ -33,26 +40,8 @@ const AdminProducts = () => {
         fetchProducts();
     }, []);
 
-    const handleImageUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
-
-        setUploading(true);
-        try {
-            const response = await api.post(ENDPOINTS.UPLOAD.SINGLE, formDataUpload, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            const imageUrl = response.data?.file?.url || response.data?.url;
-            setFormData({ ...formData, image: imageUrl });
-        } catch (error) {
-            console.error('Failed to upload image:', error);
-            alert('Gagal upload gambar');
-        } finally {
-            setUploading(false);
-        }
+    const handleImageSelect = (imagePath) => {
+        setFormData({ ...formData, image: imagePath });
     };
 
     const handleSubmit = async (e) => {
@@ -68,9 +57,10 @@ const AdminProducts = () => {
             setEditingItem(null);
             setFormData({ name: '', description: '', price: '', seller: '', image: '' });
             fetchProducts();
+            toast.success(editingItem ? 'Produk berhasil diperbarui' : 'Produk berhasil ditambahkan');
         } catch (error) {
             console.error('Failed to save product:', error);
-            alert('Gagal menyimpan produk');
+            toast.error('Gagal menyimpan produk');
         }
     };
 
@@ -86,14 +76,19 @@ const AdminProducts = () => {
         setModalOpen(true);
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Yakin ingin menghapus produk ini?')) return;
+    const handleDeleteClick = (id) => {
+        setDeleteId(id);
+        setConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
         try {
-            await api.delete(ENDPOINTS.PRODUCTS.DELETE(id));
+            await api.delete(ENDPOINTS.PRODUCTS.DELETE(deleteId));
             fetchProducts();
+            toast.success('Produk berhasil dihapus');
         } catch (error) {
             console.error('Failed to delete product:', error);
-            alert('Gagal menghapus produk');
+            toast.error('Gagal menghapus produk');
         }
     };
 
@@ -164,7 +159,7 @@ const AdminProducts = () => {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             {item.image ? (
-                                                <img src={item.image} alt={item.name} className="w-10 h-10 object-cover bg-slate-100" />
+                                                <img src={getImageUrl(item.image)} alt={item.name} className="w-10 h-10 object-cover bg-slate-100" />
                                             ) : (
                                                 <div className="w-10 h-10 bg-slate-100" />
                                             )}
@@ -183,7 +178,7 @@ const AdminProducts = () => {
                                             <MdEdit size={18} />
                                         </button>
                                         <button
-                                            onClick={() => handleDelete(item.id)}
+                                            onClick={() => handleDeleteClick(item.id)}
                                             className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50"
                                         >
                                             <MdDelete size={18} />
@@ -239,21 +234,18 @@ const AdminProducts = () => {
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 mb-1">Gambar</label>
                                 <div className="flex gap-2">
-                                    <label className="flex-1 flex items-center gap-2 px-4 py-2 border border-slate-300 cursor-pointer hover:bg-slate-50">
-                                        <MdUpload size={20} className="text-slate-500" />
-                                        <span className="text-sm text-slate-600 truncate">
-                                            {uploading ? 'Uploading...' : formData.image ? 'Ganti gambar' : 'Pilih gambar'}
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setMediaPickerOpen(true)}
+                                        className="flex-1 flex items-center gap-2 px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-600 cursor-pointer"
+                                    >
+                                        <MdPhotoLibrary size={20} className="text-slate-500" />
+                                        <span className="text-sm truncate">
+                                            {formData.image ? 'Ganti gambar' : 'Pilih dari Media'}
                                         </span>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleImageUpload}
-                                            className="hidden"
-                                            disabled={uploading}
-                                        />
-                                    </label>
+                                    </button>
                                     {formData.image && (
-                                        <img src={formData.image} alt="Preview" className="w-10 h-10 object-cover" />
+                                        <img src={getImageUrl(formData.image)} alt="Preview" className="w-10 h-10 object-cover border" />
                                     )}
                                 </div>
                             </div>
@@ -284,6 +276,22 @@ const AdminProducts = () => {
                     </div>
                 </div>
             )}
+
+            <MediaPicker 
+                isOpen={mediaPickerOpen} 
+                onClose={() => setMediaPickerOpen(false)} 
+                onSelect={handleImageSelect}
+            />
+
+            <ConfirmDialog
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Hapus Produk"
+                message="Apakah Anda yakin ingin menghapus produk ini?"
+                confirmText="Ya, Hapus"
+                type="danger"
+            />
         </div>
     );
 };

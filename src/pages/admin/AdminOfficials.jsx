@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
-import { MdAdd, MdClose, MdDelete, MdEdit, MdUpload } from 'react-icons/md';
+import { MdAdd, MdClose, MdDelete, MdEdit, MdPhotoLibrary } from 'react-icons/md';
+import { toast } from 'sonner';
 import api from '../../api/axios';
 import ENDPOINTS from '../../api/endpoints';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import MediaPicker from '../../components/MediaPicker';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const AdminOfficials = () => {
     const [officials, setOfficials] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
-    const [uploading, setUploading] = useState(false);
+    const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
     const [formData, setFormData] = useState({ name: '', position: '', image: '', order: 0, parentId: '' });
 
     const fetchData = async () => {
@@ -24,20 +30,8 @@ const AdminOfficials = () => {
 
     useEffect(() => { fetchData(); }, []);
 
-    const handleImageUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
-        setUploading(true);
-        try {
-            const response = await api.post(ENDPOINTS.UPLOAD.SINGLE, formDataUpload, { headers: { 'Content-Type': 'multipart/form-data' } });
-            setFormData({ ...formData, image: response.data?.file?.url || response.data?.url });
-        } catch (error) {
-            alert('Gagal upload gambar');
-        } finally {
-            setUploading(false);
-        }
+    const handleImageSelect = (imagePath) => {
+        setFormData({ ...formData, image: imagePath });
     };
 
     const handleSubmit = async (e) => {
@@ -56,8 +50,9 @@ const AdminOfficials = () => {
             }
             setModalOpen(false);
             fetchData();
+            toast.success(editingItem ? 'Data berhasil diperbarui' : 'Data berhasil ditambahkan');
         } catch (error) {
-            alert('Gagal menyimpan data');
+            toast.error('Gagal menyimpan data');
         }
     };
 
@@ -73,13 +68,18 @@ const AdminOfficials = () => {
         setModalOpen(true);
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Yakin ingin menghapus?')) return;
+    const handleDeleteClick = (id) => {
+        setDeleteId(id);
+        setConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
         try {
-            await api.delete(ENDPOINTS.OFFICIALS.DELETE(id));
+            await api.delete(ENDPOINTS.OFFICIALS.DELETE(deleteId));
             fetchData();
+            toast.success('Data berhasil dihapus');
         } catch (error) {
-            alert('Gagal menghapus');
+            toast.error('Gagal menghapus data');
         }
     };
 
@@ -128,7 +128,7 @@ const AdminOfficials = () => {
                         officials.sort((a, b) => a.order - b.order).map((item) => (
                             <tr key={item.id} className="hover:bg-slate-50">
                                 <td className="px-6 py-4">
-                                    {item.image ? <img src={item.image} className="w-12 h-12 object-cover bg-slate-100" /> : <div className="w-12 h-12 bg-slate-100" />}
+                                    {item.image ? <img src={getImageUrl(item.image)} className="w-12 h-12 object-cover bg-slate-100" /> : <div className="w-12 h-12 bg-slate-100" />}
                                 </td>
                                 <td className="px-6 py-4 font-medium">{item.name}</td>
                                 <td className="px-6 py-4 text-slate-600">{item.position}</td>
@@ -137,7 +137,7 @@ const AdminOfficials = () => {
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <button onClick={() => handleEdit(item)} className="p-2 hover:bg-blue-50 text-slate-600 hover:text-blue-600"><MdEdit size={18} /></button>
-                                    <button onClick={() => handleDelete(item.id)} className="p-2 hover:bg-red-50 text-slate-600 hover:text-red-600"><MdDelete size={18} /></button>
+                                    <button onClick={() => handleDeleteClick(item.id)} className="p-2 hover:bg-red-50 text-slate-600 hover:text-red-600"><MdDelete size={18} /></button>
                                 </td>
                             </tr>
                         ))}
@@ -181,12 +181,17 @@ const AdminOfficials = () => {
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Foto</label>
                                     <div className="flex gap-2">
-                                        <label className="flex-1 flex items-center gap-2 px-4 py-2 border cursor-pointer hover:bg-slate-50">
-                                            <MdUpload size={20} className="text-slate-500" />
-                                            <span className="text-sm text-slate-600 truncate">{uploading ? 'Uploading...' : formData.image ? 'Ganti' : 'Pilih'}</span>
-                                            <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
-                                        </label>
-                                        {formData.image && <img src={formData.image} alt="Preview" className="w-10 h-10 object-cover" />}
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setMediaPickerOpen(true)}
+                                            className="flex-1 flex items-center gap-2 px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-600"
+                                        >
+                                            <MdPhotoLibrary size={20} className="text-slate-500" />
+                                            <span className="text-sm truncate">
+                                                {formData.image ? 'Ganti' : 'Pilih'}
+                                            </span>
+                                        </button>
+                                        {formData.image && <img src={getImageUrl(formData.image)} alt="Preview" className="w-10 h-10 object-cover border" />}
                                     </div>
                                 </div>
                             </div>
@@ -198,6 +203,22 @@ const AdminOfficials = () => {
                     </div>
                 </div>
             )}
+
+            <MediaPicker 
+                isOpen={mediaPickerOpen} 
+                onClose={() => setMediaPickerOpen(false)} 
+                onSelect={handleImageSelect}
+            />
+
+            <ConfirmDialog
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Hapus Data"
+                message="Apakah Anda yakin ingin menghapus data ini?"
+                confirmText="Ya, Hapus"
+                type="danger"
+            />
         </div>
     );
 };

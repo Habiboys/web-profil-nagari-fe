@@ -1,12 +1,46 @@
 import { useState } from 'react';
-import ReactQuill from 'react-quill-new';
+import ReactQuill, { Quill } from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import MediaPicker from './MediaPicker';
+
+// Register Custom Image Blot to support resizing
+const BlockEmbed = Quill.import('blots/block/embed');
+
+class ImageBlot extends BlockEmbed {
+    static create(value) {
+        let node = super.create();
+        node.setAttribute('src', value.url || value);
+        if (value.width) {
+            node.setAttribute('width', value.width);
+        }
+        if (value.height) {
+            node.setAttribute('height', value.height);
+        }
+        if (value.style) {
+            node.setAttribute('style', value.style);
+        }
+        return node;
+    }
+
+    static value(node) {
+        return {
+            url: node.getAttribute('src'),
+            width: node.getAttribute('width'),
+            height: node.getAttribute('height'),
+            style: node.getAttribute('style')
+        };
+    }
+}
+
+ImageBlot.blotName = 'image';
+ImageBlot.tagName = 'img';
+
+Quill.register(ImageBlot, true);
 
 const RichTextEditor = ({ value, onChange, placeholder = 'Tulis konten di sini...' }) => {
     const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
     const [quillInstance, setQuillInstance] = useState(null);
-    const [selectedImageSrc, setSelectedImageSrc] = useState(null);
+    const [selectedImageInfo, setSelectedImageInfo] = useState(null);
     const [imageSize, setImageSize] = useState({ width: '', height: '' });
     const [showResizeModal, setShowResizeModal] = useState(false);
 
@@ -19,42 +53,60 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Tulis konten di sini..
         }
     };
 
-    // Event delegation - detect clicks on images inside editor container
     const handleContainerClick = (e) => {
         const target = e.target;
-        // Check if clicked element is an image inside the editor
         if (target.tagName === 'IMG' && target.closest('.ql-editor')) {
             e.preventDefault();
             e.stopPropagation();
-            setSelectedImageSrc(target.src);
-            setImageSize({ 
-                width: target.style.width || '100%',
-                height: target.style.height || 'auto'
-            });
+            
+            // Get current size
+            const width = target.style.width || target.getAttribute('width') || '100%';
+            const height = target.style.height || target.getAttribute('height') || 'auto';
+            
+            setSelectedImageInfo({ src: target.src, element: target });
+            setImageSize({ width, height });
             setShowResizeModal(true);
         }
     };
 
     const applyImageSize = () => {
-        if (selectedImageSrc && quillInstance) {
-            const editor = quillInstance.getEditor();
-            const editorRoot = editor.root;
-            
-            // Find the image by src and update its style
-            const images = editorRoot.querySelectorAll('img');
-            images.forEach(img => {
-                if (img.src === selectedImageSrc) {
-                    img.style.width = imageSize.width;
-                    img.style.height = imageSize.height === 'auto' ? 'auto' : imageSize.height;
-                }
-            });
-            
-            // Trigger onChange with updated HTML
-            const html = editorRoot.innerHTML;
-            onChange(html);
+        if (!selectedImageInfo || !value) {
+            setShowResizeModal(false);
+            return;
         }
+
+        // We use DOMParser to manipulate the HTML string safely
+        // This ensures compatibility with Quill's internal state updates via onChange
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(value, 'text/html');
+        const images = doc.querySelectorAll('img');
+        
+        let found = false;
+        images.forEach(img => {
+            if (img.src === selectedImageInfo.src) {
+                // Set style attribute for rendering
+                const styleStr = `width: ${imageSize.width}; height: ${imageSize.height === 'auto' ? 'auto' : imageSize.height};`;
+                img.setAttribute('style', styleStr);
+                
+                // Also set width attribute for email clients / older readers support
+                if (imageSize.width.includes('px')) {
+                    img.setAttribute('width', imageSize.width.replace('px', ''));
+                } else if (!imageSize.width.includes('%')) {
+                    // Try to guess numbers are pixels
+                    img.setAttribute('width', imageSize.width);
+                }
+                
+                found = true;
+            }
+        });
+
+        if (found) {
+            const newHtml = doc.body.innerHTML;
+            onChange(newHtml);
+        }
+        
         setShowResizeModal(false);
-        setSelectedImageSrc(null);
+        setSelectedImageInfo(null);
     };
 
     const setPresetSize = (width) => {
@@ -98,7 +150,6 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Tulis konten di sini..
                     min-height: 200px;
                 }
                 .rich-text-editor .ql-editor img {
-                    max-width: 100%;
                     cursor: pointer;
                     transition: outline 0.2s;
                 }
@@ -138,9 +189,9 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Tulis konten di sini..
                     <div className="bg-white p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
                         <h3 className="text-lg font-bold mb-4">Atur Ukuran Gambar</h3>
                         
-                        {selectedImageSrc && (
+                        {selectedImageInfo && (
                             <div className="mb-4 p-2 bg-slate-100 text-center">
-                                <img src={selectedImageSrc} alt="" className="max-h-24 mx-auto" />
+                                <img src={selectedImageInfo.src} alt="" className="max-h-24 mx-auto" />
                             </div>
                         )}
                         

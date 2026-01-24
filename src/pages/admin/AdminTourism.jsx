@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react';
-import { MdAdd, MdClose, MdDelete, MdEdit, MdUpload } from 'react-icons/md';
+import { MdAdd, MdClose, MdDelete, MdEdit, MdPhotoLibrary } from 'react-icons/md';
+import { toast } from 'sonner';
 import api from '../../api/axios';
 import ENDPOINTS from '../../api/endpoints';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import MediaPicker from '../../components/MediaPicker';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const AdminTourism = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
-    const [uploading, setUploading] = useState(false);
     const [formData, setFormData] = useState({ name: '', description: '', image: '', location: '' });
+    const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
 
     const fetchData = async () => {
         try {
@@ -17,6 +23,7 @@ const AdminTourism = () => {
             setData(response.data?.data || response.data || []);
         } catch (error) {
             console.error('Failed to fetch:', error);
+            toast.error('Gagal mengambil data');
         } finally {
             setLoading(false);
         }
@@ -24,20 +31,8 @@ const AdminTourism = () => {
 
     useEffect(() => { fetchData(); }, []);
 
-    const handleImageUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const formDataUpload = new FormData();
-        formDataUpload.append('file', file);
-        setUploading(true);
-        try {
-            const response = await api.post(ENDPOINTS.UPLOAD.SINGLE, formDataUpload, { headers: { 'Content-Type': 'multipart/form-data' } });
-            setFormData({ ...formData, image: response.data?.file?.url || response.data?.url });
-        } catch (error) {
-            alert('Gagal upload gambar');
-        } finally {
-            setUploading(false);
-        }
+    const handleImageSelect = (imagePath) => {
+        setFormData({ ...formData, image: imagePath });
     };
 
     const handleSubmit = async (e) => {
@@ -50,8 +45,9 @@ const AdminTourism = () => {
             }
             setModalOpen(false);
             fetchData();
+            toast.success('Data berhasil disimpan');
         } catch (error) {
-            alert('Gagal menyimpan data');
+            toast.error('Gagal menyimpan data');
         }
     };
 
@@ -61,9 +57,19 @@ const AdminTourism = () => {
         setModalOpen(true);
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Yakin ingin menghapus?')) return;
-        try { await api.delete(ENDPOINTS.TOURISM.DELETE(id)); fetchData(); } catch { alert('Gagal menghapus'); }
+    const handleDeleteClick = (id) => {
+        setDeleteId(id);
+        setConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        try {
+            await api.delete(ENDPOINTS.TOURISM.DELETE(deleteId));
+            toast.success('Data berhasil dihapus');
+            fetchData();
+        } catch (error) {
+            toast.error('Gagal menghapus data');
+        }
     };
 
     return (
@@ -81,14 +87,14 @@ const AdminTourism = () => {
                 data.map((item) => (
                     <div key={item.id} className="bg-white border border-slate-200 overflow-hidden">
                         <div className="h-40 bg-slate-100">
-                            {item.image && <img src={item.image} alt={item.name} className="w-full h-full object-cover" />}
+                            {item.image && <img src={getImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />}
                         </div>
                         <div className="p-4">
                             <h3 className="font-bold text-slate-900 mb-1">{item.name}</h3>
                             <p className="text-sm text-slate-500 line-clamp-2 mb-4">{item.description}</p>
                             <div className="flex gap-2">
                                 <button onClick={() => handleEdit(item)} className="flex-1 py-2 border border-slate-300 text-sm hover:bg-slate-50 flex items-center justify-center gap-1"><MdEdit size={16} /> Edit</button>
-                                <button onClick={() => handleDelete(item.id)} className="py-2 px-3 border border-red-300 text-red-600 hover:bg-red-50"><MdDelete size={16} /></button>
+                                <button onClick={() => handleDeleteClick(item.id)} className="py-2 px-3 border border-red-300 text-red-600 hover:bg-red-50"><MdDelete size={16} /></button>
                             </div>
                         </div>
                     </div>
@@ -105,12 +111,19 @@ const AdminTourism = () => {
                             <div>
                                 <label className="block text-sm font-medium mb-1">Gambar</label>
                                 <div className="flex gap-2">
-                                    <label className="flex-1 flex items-center gap-2 px-4 py-2 border cursor-pointer hover:bg-slate-50">
-                                        <MdUpload size={20} className="text-slate-500" />
-                                        <span className="text-sm text-slate-600">{uploading ? 'Uploading...' : formData.image ? 'Ganti gambar' : 'Pilih gambar'}</span>
-                                        <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
-                                    </label>
-                                    {formData.image && <img src={formData.image} alt="Preview" className="w-10 h-10 object-cover" />}
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setMediaPickerOpen(true)}
+                                        className="flex-1 flex items-center gap-2 px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-600"
+                                    >
+                                        <MdPhotoLibrary size={20} className="text-slate-500" />
+                                        <span className="text-sm truncate">
+                                            {formData.image ? 'Ganti gambar' : 'Pilih dari Media'}
+                                        </span>
+                                    </button>
+                                    {formData.image && (
+                                        <img src={getImageUrl(formData.image)} alt="Preview" className="w-10 h-10 object-cover border" />
+                                    )}
                                 </div>
                             </div>
                             <div><label className="block text-sm font-medium mb-1">Deskripsi</label><textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2 border border-slate-300 focus:border-orange-500 outline-none h-24 resize-none" /></div>
@@ -122,6 +135,22 @@ const AdminTourism = () => {
                     </div>
                 </div>
             )}
+
+            <MediaPicker 
+                isOpen={mediaPickerOpen} 
+                onClose={() => setMediaPickerOpen(false)} 
+                onSelect={handleImageSelect}
+            />
+
+            <ConfirmDialog
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Hapus Wisata"
+                message="Apakah Anda yakin ingin menghapus data wisata ini?"
+                confirmText="Ya, Hapus"
+                type="danger"
+            />
         </div>
     );
 };
