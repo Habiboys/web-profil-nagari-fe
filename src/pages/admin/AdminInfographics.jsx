@@ -5,6 +5,7 @@ import api from '../../api/axios';
 import ENDPOINTS from '../../api/endpoints';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import MediaPicker from '../../components/MediaPicker';
+import { getImagePath, getImageUrl } from '../../utils/imageUrl';
 
 const AdminInfographics = () => {
     const [items, setItems] = useState([]);
@@ -65,6 +66,13 @@ const AdminInfographics = () => {
         }
     };
 
+    const handleMediaSelect = (imageUrl) => {
+        // Convert full URL to relative path for storage
+        const relativePath = getImagePath(imageUrl);
+        setFormData({ ...formData, image: relativePath });
+        setShowMediaPicker(false);
+    };
+
     if (loading) return <div className="text-center py-12 text-slate-500">Loading...</div>;
 
     return (
@@ -95,21 +103,21 @@ const AdminInfographics = () => {
                         </div>
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-slate-700 mb-1">Gambar</label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={formData.image}
-                                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                    className="flex-1 px-4 py-2 border border-slate-300 focus:border-blue-500 outline-none"
-                                    placeholder="URL gambar"
-                                    required
-                                />
-                                <button type="button" onClick={() => setShowMediaPicker(true)} className="bg-slate-200 text-slate-700 px-4 py-2 hover:bg-slate-300">
-                                    Pilih Media
+                            <div className="flex gap-2 items-center">
+                                <button type="button" onClick={() => setShowMediaPicker(true)} className="bg-blue-600 text-white px-4 py-2 hover:bg-blue-700">
+                                    Pilih dari Media
                                 </button>
+                                {formData.image && (
+                                    <>
+                                        <span className="text-sm text-slate-500 truncate max-w-xs">{formData.image.split('/').pop()}</span>
+                                        <button type="button" onClick={() => setFormData({ ...formData, image: '' })} className="text-red-500 hover:text-red-700 text-sm">
+                                            Hapus
+                                        </button>
+                                    </>
+                                )}
                             </div>
                             {formData.image && (
-                                <img src={formData.image} alt="Preview" className="mt-2 h-32 object-cover rounded" />
+                                <img src={getImageUrl(formData.image)} alt="Preview" className="mt-2 h-32 object-cover rounded border border-slate-200" />
                             )}
                         </div>
                         <div className="mb-4">
@@ -135,7 +143,7 @@ const AdminInfographics = () => {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {items.map((item) => (
                     <div key={item.id} className="bg-white border border-slate-200 overflow-hidden">
-                        <img src={item.image} alt={item.title} className="w-full h-40 object-cover" />
+                        <img src={getImageUrl(item.image)} alt={item.title} className="w-full h-40 object-cover" />
                         <div className="p-4">
                             <h3 className="font-semibold text-slate-900">{item.title}</h3>
                             {item.description && <p className="text-sm text-slate-600 mt-1">{item.description}</p>}
@@ -166,10 +174,7 @@ const AdminInfographics = () => {
             <MediaPicker
                 isOpen={showMediaPicker}
                 onClose={() => setShowMediaPicker(false)}
-                onSelect={(media) => {
-                    setFormData({ ...formData, image: media.path });
-                    setShowMediaPicker(false);
-                }}
+                onSelect={handleMediaSelect}
             />
         </div>
     );

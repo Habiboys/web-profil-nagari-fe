@@ -1,22 +1,29 @@
 import { useEffect, useState } from 'react';
-import { MdFamilyRestroom, MdMan, MdPeople, MdWoman, MdWork } from 'react-icons/md';
+import { MdFamilyRestroom, MdMan, MdPeople, MdWoman, MdWork, MdZoomIn } from 'react-icons/md';
 import api from '../api/axios';
 import ENDPOINTS from '../api/endpoints';
 import usePageHero from '../hooks/usePageHero';
+import { getImageUrl } from '../utils/imageUrl';
 
 const Infographics = () => {
     const [demographics, setDemographics] = useState(null);
+    const [infographics, setInfographics] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedImage, setSelectedImage] = useState(null);
     
     const { hero } = usePageHero('infographics');
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await api.get(ENDPOINTS.DEMOGRAPHICS.GET);
-                setDemographics(res.data?.data || res.data);
+                const [demoRes, infoRes] = await Promise.all([
+                    api.get(ENDPOINTS.DEMOGRAPHICS.GET),
+                    api.get(ENDPOINTS.INFOGRAPHICS.GET_ALL)
+                ]);
+                setDemographics(demoRes.data?.data || demoRes.data);
+                setInfographics(infoRes.data || []);
             } catch (error) {
-                console.error('Failed to fetch demographics:', error);
+                console.error('Failed to fetch data:', error);
             } finally {
                 setLoading(false);
             }
@@ -77,7 +84,7 @@ const Infographics = () => {
                         </div>
 
                         {/* Gender Distribution */}
-                        <div className="grid lg:grid-cols-2 gap-8">
+                        <div className="grid lg:grid-cols-2 gap-8 mb-12">
                             <div className="bg-white p-6 border border-slate-200">
                                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
                                     <MdPeople size={24} className="text-indigo-600" />
@@ -137,9 +144,64 @@ const Infographics = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Infografis Section */}
+                        {infographics.length > 0 && (
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-900 mb-6">Infografis</h2>
+                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {infographics.map((item) => (
+                                        <div 
+                                            key={item.id} 
+                                            className="bg-white border border-slate-200 overflow-hidden group cursor-pointer"
+                                            onClick={() => setSelectedImage(item)}
+                                        >
+                                            <div className="relative h-48 bg-slate-100">
+                                                <img 
+                                                    src={getImageUrl(item.image)} 
+                                                    alt={item.title} 
+                                                    className="w-full h-full object-cover" 
+                                                />
+                                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                                    <MdZoomIn size={32} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </div>
+                                            </div>
+                                            <div className="p-4">
+                                                <h3 className="font-semibold text-slate-900">{item.title}</h3>
+                                                {item.description && (
+                                                    <p className="text-sm text-slate-600 mt-1 line-clamp-2">{item.description}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
             </div>
+
+            {/* Lightbox Modal */}
+            {selectedImage && (
+                <div 
+                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+                    onClick={() => setSelectedImage(null)}
+                >
+                    <div className="max-w-4xl w-full max-h-full overflow-auto" onClick={e => e.stopPropagation()}>
+                        <img 
+                            src={getImageUrl(selectedImage.image)} 
+                            alt={selectedImage.title} 
+                            className="w-full h-auto"
+                        />
+                        <div className="bg-white p-4">
+                            <h3 className="font-bold text-lg">{selectedImage.title}</h3>
+                            {selectedImage.description && (
+                                <p className="text-slate-600 mt-1">{selectedImage.description}</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
