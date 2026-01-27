@@ -115,7 +115,7 @@ const AdminGallery = () => {
                                     )}
                                 </div>
                             </div>
-                            <div><label className="block text-sm font-medium mb-1">Deskripsi</label><textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full px-4 py-2 border border-slate-300 focus:border-pink-500 outline-none h-20 resize-none" /></div>
+
                             <div className="flex gap-3 pt-4">
                                 <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-50">Batal</button>
                                 <button type="submit" className="flex-1 px-4 py-2 bg-pink-600 text-white hover:bg-pink-700">Simpan</button>

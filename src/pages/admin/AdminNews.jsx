@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { MdAdd, MdClose, MdDelete, MdEdit, MdPhotoLibrary, MdSearch } from 'react-icons/md';
+import { toast } from 'sonner';
 import api from '../../api/axios';
 import ENDPOINTS from '../../api/endpoints';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import MediaPicker from '../../components/MediaPicker';
 import RichTextEditor from '../../components/RichTextEditor';
 
@@ -12,6 +14,8 @@ const AdminNews = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
     const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
         content: '',
@@ -25,6 +29,7 @@ const AdminNews = () => {
             setNews(response.data?.data || response.data || []);
         } catch (error) {
             console.error('Failed to fetch news:', error);
+            toast.error('Gagal mengambil berita');
         } finally {
             setLoading(false);
         }
@@ -43,8 +48,10 @@ const AdminNews = () => {
         try {
             if (editingItem) {
                 await api.put(ENDPOINTS.NEWS.UPDATE(editingItem.id), formData);
+                toast.success('Berita berhasil diperbarui');
             } else {
                 await api.post(ENDPOINTS.NEWS.CREATE, formData);
+                toast.success('Berita berhasil ditambahkan');
             }
             setModalOpen(false);
             setEditingItem(null);
@@ -52,7 +59,7 @@ const AdminNews = () => {
             fetchNews();
         } catch (error) {
             console.error('Failed to save news:', error);
-            alert('Gagal menyimpan berita');
+            toast.error('Gagal menyimpan berita');
         }
     };
 
@@ -67,14 +74,19 @@ const AdminNews = () => {
         setModalOpen(true);
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Yakin ingin menghapus berita ini?')) return;
+    const handleDeleteClick = (id) => {
+        setDeleteId(id);
+        setConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
         try {
-            await api.delete(ENDPOINTS.NEWS.DELETE(id));
+            await api.delete(ENDPOINTS.NEWS.DELETE(deleteId));
             fetchNews();
+            toast.success('Berita berhasil dihapus');
         } catch (error) {
             console.error('Failed to delete news:', error);
-            alert('Gagal menghapus berita');
+            toast.error('Gagal menghapus berita');
         }
     };
 
@@ -165,7 +177,7 @@ const AdminNews = () => {
                                             <MdEdit size={18} />
                                         </button>
                                         <button
-                                            onClick={() => handleDelete(item.id)}
+                                            onClick={() => handleDeleteClick(item.id)}
                                             className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50"
                                         >
                                             <MdDelete size={18} />
@@ -265,6 +277,16 @@ const AdminNews = () => {
                 onClose={() => setMediaPickerOpen(false)} 
                 onSelect={handleImageSelect}
                 currentImage={formData.image}
+            />
+
+            <ConfirmDialog
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Hapus Berita"
+                message="Apakah Anda yakin ingin menghapus berita ini?"
+                confirmText="Ya, Hapus"
+                type="danger"
             />
         </div>
     );

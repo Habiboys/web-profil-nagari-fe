@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { MdFamilyRestroom, MdMan, MdPeople, MdWoman, MdWork } from 'react-icons/md';
 import api from '../api/axios';
 import ENDPOINTS from '../api/endpoints';
+import usePageHero from '../hooks/usePageHero';
 
 const Infographics = () => {
     const [demographics, setDemographics] = useState(null);
     const [loading, setLoading] = useState(true);
+    
+    const { hero } = usePageHero('infographics');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -30,6 +33,7 @@ const Infographics = () => {
     };
 
     const data = demographics || fallback;
+    const heroBackground = hero?.image || 'https://images.unsplash.com/photo-1523475496153-3d6cc0f0bf19?w=1920&q=80';
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -37,14 +41,14 @@ const Infographics = () => {
             <div className="relative py-24">
                 <div 
                     className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1523475496153-3d6cc0f0bf19?w=1920&q=80)' }}
+                    style={{ backgroundImage: `url(${heroBackground})` }}
                 >
                     <div className="absolute inset-0 bg-slate-900/75"></div>
                 </div>
                 <div className="container mx-auto px-4 text-center relative z-10 text-white">
                     <p className="text-blue-300 font-medium uppercase tracking-widest text-sm mb-2">Data Kependudukan</p>
-                    <h1 className="text-3xl md:text-5xl font-bold mb-3">Demografi Nagari Talang Anau</h1>
-                    <p className="text-slate-300">Visualisasi data statistik penduduk tahun 2025</p>
+                    <h1 className="text-3xl md:text-5xl font-bold mb-3">{hero?.title || 'Demografi Nagari Talang Anau'}</h1>
+                    <p className="text-slate-300">{hero?.subtitle || 'Visualisasi data statistik penduduk tahun 2025'}</p>
                 </div>
             </div>
 

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { MdAdd, MdClose, MdDelete, MdEdit } from 'react-icons/md';
+import { toast } from 'sonner';
 import api from '../../api/axios';
 import ENDPOINTS from '../../api/endpoints';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 const AdminMissions = () => {
     const [missions, setMissions] = useState([]);
@@ -9,6 +11,8 @@ const AdminMissions = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
     const [formData, setFormData] = useState({ content: '', order: 0 });
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
 
     const fetchData = async () => {
         try {
@@ -16,6 +20,7 @@ const AdminMissions = () => {
             setMissions(res.data || []);
         } catch (error) {
             console.error('Failed to fetch:', error);
+            toast.error('Gagal mengambil data');
         } finally {
             setLoading(false);
         }
@@ -28,15 +33,17 @@ const AdminMissions = () => {
         try {
             if (editingItem) {
                 await api.put(ENDPOINTS.MISSIONS.UPDATE(editingItem.id), formData);
+                toast.success('Misi berhasil diperbarui');
             } else {
-                await api.post(ENDPOINTS.MISSIONS.CREATE, { ...formData, nagariId: 1 });
+                await api.post(ENDPOINTS.MISSIONS.CREATE, formData);
+                toast.success('Misi berhasil ditambahkan');
             }
             setModalOpen(false);
             setEditingItem(null);
             setFormData({ content: '', order: 0 });
             fetchData();
         } catch (error) {
-            alert('Gagal menyimpan data');
+            toast.error('Gagal menyimpan data');
         }
     };
 
@@ -46,9 +53,19 @@ const AdminMissions = () => {
         setModalOpen(true);
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Yakin ingin menghapus?')) return;
-        try { await api.delete(ENDPOINTS.MISSIONS.DELETE(id)); fetchData(); } catch { alert('Gagal menghapus'); }
+    const handleDeleteClick = (id) => {
+        setDeleteId(id);
+        setConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        try { 
+            await api.delete(ENDPOINTS.MISSIONS.DELETE(deleteId)); 
+            fetchData(); 
+            toast.success('Misi berhasil dihapus');
+        } catch { 
+            toast.error('Gagal menghapus misi'); 
+        }
     };
 
     return (
@@ -75,7 +92,7 @@ const AdminMissions = () => {
                                 <p className="flex-1 text-slate-700">{item.content}</p>
                                 <div className="flex gap-1">
                                     <button onClick={() => handleEdit(item)} className="p-2 hover:bg-blue-50 text-slate-600 hover:text-blue-600"><MdEdit size={18} /></button>
-                                    <button onClick={() => handleDelete(item.id)} className="p-2 hover:bg-red-50 text-slate-600 hover:text-red-600"><MdDelete size={18} /></button>
+                                    <button onClick={() => handleDeleteClick(item.id)} className="p-2 hover:bg-red-50 text-slate-600 hover:text-red-600"><MdDelete size={18} /></button>
                                 </div>
                             </div>
                         ))}
@@ -104,6 +121,16 @@ const AdminMissions = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Hapus Misi"
+                message="Apakah Anda yakin ingin menghapus misi ini?"
+                confirmText="Ya, Hapus"
+                type="danger"
+            />
         </div>
     );
 };

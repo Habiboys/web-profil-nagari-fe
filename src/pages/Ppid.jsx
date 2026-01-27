@@ -1,19 +1,49 @@
+import { useEffect, useState } from 'react';
 import { MdDescription, MdDownload } from 'react-icons/md';
+import api from '../api/axios';
+import ENDPOINTS from '../api/endpoints';
+import usePageHero from '../hooks/usePageHero';
 
 const Ppid = () => {
-    const documents = [
-        { title: "APBDes Tahun Anggaran 2025", type: "PDF", size: "2.4 MB", date: "10 Jan 2025" },
-        { title: "RPJMDes 2020-2026", type: "PDF", size: "5.1 MB", date: "15 Des 2024" },
-        { title: "Laporan Realisasi Anggaran 2024", type: "PDF", size: "1.8 MB", date: "05 Jan 2025" },
-        { title: "Peraturan Nagari No. 1 Tahun 2025", type: "PDF", size: "850 KB", date: "20 Jan 2025" },
-    ];
+    const [documents, setDocuments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [activeCategory, setActiveCategory] = useState(null);
+    
+    const { hero } = usePageHero('ppid');
 
     const categories = [
-        "Informasi Berkala",
-        "Informasi Serta Merta",
-        "Informasi Setiap Saat",
-        "Informasi Dikecualikan"
+        { key: null, label: "Semua" },
+        { key: "Berkala", label: "Informasi Berkala" },
+        { key: "Serta Merta", label: "Informasi Serta Merta" },
+        { key: "Setiap Saat", label: "Informasi Setiap Saat" },
+        { key: "Dikecualikan", label: "Informasi Dikecualikan" }
     ];
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const res = await api.get(ENDPOINTS.PPID.GET_ALL);
+                setDocuments(res.data || []);
+            } catch (error) {
+                console.error('Failed to fetch PPID data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const filteredDocs = activeCategory
+        ? documents.filter(d => d.type === activeCategory)
+        : documents;
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    };
+    
+    const heroBackground = hero?.image || 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1920&q=80';
 
     return (
         <div className="min-h-screen bg-white">
@@ -21,14 +51,14 @@ const Ppid = () => {
             <div className="relative py-24">
                 <div 
                     className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1920&q=80)' }}
+                    style={{ backgroundImage: `url(${heroBackground})` }}
                 >
                     <div className="absolute inset-0 bg-slate-900/75"></div>
                 </div>
                 <div className="container mx-auto px-4 text-center relative z-10 text-white">
                     <p className="text-blue-300 font-medium uppercase tracking-widest text-sm mb-2">Transparansi Publik</p>
-                    <h1 className="text-3xl md:text-5xl font-bold mb-3">PPID Nagari</h1>
-                    <p className="text-slate-300">Pejabat Pengelola Informasi dan Dokumentasi</p>
+                    <h1 className="text-3xl md:text-5xl font-bold mb-3">{hero?.title || 'PPID Nagari'}</h1>
+                    <p className="text-slate-300">{hero?.subtitle || 'Pejabat Pengelola Informasi dan Dokumentasi'}</p>
                 </div>
             </div>
 
@@ -42,9 +72,12 @@ const Ppid = () => {
                             <ul className="space-y-2">
                                 {categories.map((cat, idx) => (
                                     <li key={idx}>
-                                        <a href="#" className="block px-4 py-2 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors text-sm">
-                                            {cat}
-                                        </a>
+                                        <button 
+                                            onClick={() => setActiveCategory(cat.key)}
+                                            className={`block w-full text-left px-4 py-2 transition-colors text-sm ${activeCategory === cat.key ? 'bg-blue-600 text-white' : 'text-slate-600 hover:bg-slate-200 hover:text-slate-900'}`}
+                                        >
+                                            {cat.label}
+                                        </button>
                                     </li>
                                 ))}
                             </ul>
@@ -55,28 +88,38 @@ const Ppid = () => {
                     <div className="lg:col-span-3">
                         <div className="border border-slate-200">
                             <div className="p-5 border-b border-slate-200 bg-slate-50">
-                                <h3 className="font-bold text-slate-900">Dokumen Publik Terbaru</h3>
+                                <h3 className="font-bold text-slate-900">Dokumen Publik</h3>
                             </div>
-                            <div className="divide-y divide-slate-200">
-                                {documents.map((doc, idx) => (
-                                    <div key={idx} className="p-5 hover:bg-slate-50 transition-colors flex items-start gap-5">
-                                        <div className="p-3 bg-red-50 text-red-600 shrink-0">
-                                            <MdDescription size={24} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h4 className="font-medium text-slate-900 mb-2">{doc.title}</h4>
-                                            <div className="flex gap-4 text-xs text-slate-500">
-                                                <span className="bg-slate-100 px-2 py-1">{doc.type}</span>
-                                                <span className="py-1">{doc.size}</span>
-                                                <span className="py-1">{doc.date}</span>
+                            {loading ? (
+                                <div className="p-8 text-center text-slate-500">Loading...</div>
+                            ) : filteredDocs.length === 0 ? (
+                                <div className="p-8 text-center text-slate-500">Belum ada dokumen.</div>
+                            ) : (
+                                <div className="divide-y divide-slate-200">
+                                    {filteredDocs.map((doc, idx) => (
+                                        <div key={doc.id || idx} className="p-5 hover:bg-slate-50 transition-colors flex items-start gap-5">
+                                            <div className="p-3 bg-red-50 text-red-600 shrink-0">
+                                                <MdDescription size={24} />
                                             </div>
+                                            <div className="flex-1">
+                                                <h4 className="font-medium text-slate-900 mb-2">{doc.title}</h4>
+                                                {doc.description && (
+                                                    <p className="text-sm text-slate-600 mb-2">{doc.description}</p>
+                                                )}
+                                                <div className="flex gap-4 text-xs text-slate-500">
+                                                    <span className="bg-slate-100 px-2 py-1">{doc.type}</span>
+                                                    <span className="py-1">{formatDate(doc.createdAt)}</span>
+                                                </div>
+                                            </div>
+                                            {doc.file && (
+                                                <a href={doc.file} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                                                    <MdDownload size={20} />
+                                                </a>
+                                            )}
                                         </div>
-                                        <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
-                                            <MdDownload size={20} />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

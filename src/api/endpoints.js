@@ -101,6 +101,36 @@ const ENDPOINTS = {
         MULTIPLE: '/upload/multiple',
         DELETE: (type, filename) => `/upload/${type}/${filename}`,
     },
+    HISTORY: {
+        GET_ALL: '/history',
+        CREATE: '/history',
+        UPDATE: (id) => `/history/${id}`,
+        DELETE: (id) => `/history/${id}`,
+    },
+    INFOGRAPHICS: {
+        GET_ALL: '/infographics',
+        CREATE: '/infographics',
+        UPDATE: (id) => `/infographics/${id}`,
+        DELETE: (id) => `/infographics/${id}`,
+    },
+    PPID: {
+        GET_ALL: '/ppid',
+        CREATE: '/ppid',
+        UPDATE: (id) => `/ppid/${id}`,
+        DELETE: (id) => `/ppid/${id}`,
+    },
+    PAGE_HEROES: {
+        GET_ALL: '/page-heroes',
+        GET_ONE: (name) => `/page-heroes/${name}`,
+        UPDATE: (page) => `/page-heroes/${page}`,
+    },
+    IDM: {
+        GET: '/idm',
+        GET_ALL: '/idm/all',
+        UPSERT: '/idm',
+        DELETE: (id) => `/idm/${id}`,
+    },
 };
 
 export default ENDPOINTS;
+

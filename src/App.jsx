@@ -4,6 +4,7 @@ import AdminLayout from './layouts/AdminLayout';
 import MainLayout from './layouts/MainLayout';
 
 // Public Pages
+import Assets from './pages/Assets';
 import Home from './pages/Home';
 import Idm from './pages/Idm';
 import Infographics from './pages/Infographics';
@@ -23,13 +24,18 @@ import AdminCommodities from './pages/admin/AdminCommodities';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminFacilities from './pages/admin/AdminFacilities';
 import AdminGallery from './pages/admin/AdminGallery';
+import AdminHistory from './pages/admin/AdminHistory';
+import AdminIDM from './pages/admin/AdminIDM';
+import AdminInfographics from './pages/admin/AdminInfographics';
 import AdminJorongs from './pages/admin/AdminJorongs';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminMedia from './pages/admin/AdminMedia';
 import AdminMissions from './pages/admin/AdminMissions';
 import AdminNews from './pages/admin/AdminNews';
 import AdminOfficials from './pages/admin/AdminOfficials';
+import AdminPageSettings from './pages/admin/AdminPageSettings';
 import AdminPotensi from './pages/admin/AdminPotensi';
+import AdminPPID from './pages/admin/AdminPPID';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminSettings from './pages/admin/AdminSettings';
 import AdminTourism from './pages/admin/AdminTourism';
@@ -54,6 +60,7 @@ function App() {
           <Route path="news/:id" element={<NewsDetail />} />
           <Route path="marketplace" element={<Marketplace />} />
           <Route path="marketplace/:id" element={<ProductDetail />} />
+          <Route path="assets" element={<Assets />} />
         </Route>
 
         {/* Admin Routes */}
@@ -73,8 +80,13 @@ function App() {
           <Route path="facilities" element={<AdminFacilities />} />
           <Route path="commodities" element={<AdminCommodities />} />
           <Route path="missions" element={<AdminMissions />} />
+          <Route path="history" element={<AdminHistory />} />
           <Route path="jorongs" element={<AdminJorongs />} />
           <Route path="assets" element={<AdminAssets />} />
+          <Route path="infographics" element={<AdminInfographics />} />
+          <Route path="ppid" element={<AdminPPID />} />
+          <Route path="idm" element={<AdminIDM />} />
+          <Route path="page-settings" element={<AdminPageSettings />} />
           <Route path="media" element={<AdminMedia />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
@@ -84,3 +96,4 @@ function App() {
 }
 
 export default App;
+

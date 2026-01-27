@@ -1,21 +1,27 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import ENDPOINTS from '../api/endpoints';
+import usePageHero from '../hooks/usePageHero';
 
 const TentangNagari = () => {
     const [profile, setProfile] = useState(null);
     const [geography, setGeography] = useState(null);
+    const [historyVersions, setHistoryVersions] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    const { hero } = usePageHero('tentang');
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [profileRes, geoRes] = await Promise.all([
+                const [profileRes, geoRes, historyRes] = await Promise.all([
                     api.get(ENDPOINTS.PROFILE.GET),
                     api.get(ENDPOINTS.GEOGRAPHY.GET),
+                    api.get(ENDPOINTS.HISTORY.GET_ALL),
                 ]);
                 setProfile(profileRes.data?.data || profileRes.data);
                 setGeography(geoRes.data?.data || geoRes.data);
+                setHistoryVersions(historyRes.data || []);
             } catch (error) {
                 console.error('Failed to fetch data:', error);
             } finally {
@@ -32,6 +38,8 @@ const TentangNagari = () => {
             </div>
         );
     }
+    
+    const heroBackground = hero?.image || 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80';
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -39,14 +47,14 @@ const TentangNagari = () => {
             <div className="relative py-24">
                 <div 
                     className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80)' }}
+                    style={{ backgroundImage: `url(${heroBackground})` }}
                 >
                     <div className="absolute inset-0 bg-slate-900/75"></div>
                 </div>
                 <div className="max-w-6xl mx-auto px-4 relative z-10 text-white text-center">
                     <p className="text-blue-300 font-medium uppercase tracking-widest text-sm mb-2">Profil Daerah</p>
-                    <h1 className="text-3xl md:text-5xl font-bold mb-3">Tentang Nagari</h1>
-                    <p className="text-slate-300">Informasi umum tentang Nagari Talang Anau</p>
+                    <h1 className="text-3xl md:text-5xl font-bold mb-3">{hero?.title || 'Tentang Nagari'}</h1>
+                    <p className="text-slate-300">{hero?.subtitle || 'Informasi umum tentang Nagari Talang Anau'}</p>
                 </div>
             </div>
 
@@ -132,12 +140,30 @@ const TentangNagari = () => {
                 )}
 
                 {/* Sejarah */}
-                {profile?.historyIntro && (
-                    <div className="bg-white border border-slate-200 p-8">
-                        <h2 className="text-xl font-bold text-slate-900 mb-6">Sejarah Singkat</h2>
-                        <p className="text-slate-700 leading-relaxed">{profile.historyIntro}</p>
-                    </div>
-                )}
+                <div className="bg-white border border-slate-200 p-8">
+                    <h2 className="text-xl font-bold text-slate-900 mb-6">Sejarah Nagari</h2>
+                    
+                    {/* Intro */}
+                    {profile?.historyIntro && (
+                        <p className="text-slate-700 leading-relaxed mb-6">{profile.historyIntro}</p>
+                    )}
+
+                    {/* Detailed History Versions */}
+                    {historyVersions.length > 0 && (
+                        <div className="space-y-6">
+                            {historyVersions.map((item, idx) => (
+                                <div key={item.id || idx} className="border-l-4 border-blue-600 pl-4">
+                                    <h3 className="font-semibold text-slate-900 mb-2">{item.title}</h3>
+                                    <p className="text-slate-700 whitespace-pre-wrap">{item.content}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {!profile?.historyIntro && historyVersions.length === 0 && (
+                        <p className="text-slate-500">Belum ada data sejarah.</p>
+                    )}
+                </div>
             </div>
         </div>
     );

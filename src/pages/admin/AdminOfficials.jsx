@@ -41,7 +41,6 @@ const AdminOfficials = () => {
                 ...formData, 
                 order: parseInt(formData.order) || 0,
                 parentId: formData.parentId ? parseInt(formData.parentId) : null,
-                nagariId: 1
             };
             if (editingItem) {
                 await api.put(ENDPOINTS.OFFICIALS.UPDATE(editingItem.id), payload);

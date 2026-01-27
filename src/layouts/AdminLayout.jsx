@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MdAccountBalance, MdArticle, MdAutoAwesome, MdDashboard, MdFlag, MdGroup, MdImage, MdLandscape, MdLocationCity, MdLogout, MdMenu, MdPark, MdPerson, MdPhotoLibrary, MdSchool, MdSettings, MdStore } from 'react-icons/md';
+import { MdAccountBalance, MdArticle, MdAutoAwesome, MdDashboard, MdDescription, MdFlag, MdGroup, MdHistory, MdImage, MdInsertChart, MdLandscape, MdLocationCity, MdLogout, MdMenu, MdPark, MdPerson, MdPhotoLibrary, MdPublic, MdSchool, MdSettings, MdStore, MdViewCarousel } from 'react-icons/md';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 
@@ -24,8 +24,13 @@ const AdminLayout = () => {
         { name: 'Fasilitas', path: '/admin/facilities', icon: MdSchool },
         { name: 'Komoditi', path: '/admin/commodities', icon: MdPark },
         { name: 'Misi', path: '/admin/missions', icon: MdFlag },
+        { name: 'Sejarah', path: '/admin/history', icon: MdHistory },
         { name: 'Jorong', path: '/admin/jorongs', icon: MdLocationCity },
         { name: 'Aset', path: '/admin/assets', icon: MdAccountBalance },
+        { name: 'Infografis', path: '/admin/infographics', icon: MdViewCarousel },
+        { name: 'PPID', path: '/admin/ppid', icon: MdDescription },
+        { name: 'IDM', path: '/admin/idm', icon: MdInsertChart },
+        { name: 'Tampilan', path: '/admin/page-settings', icon: MdViewCarousel },
         { name: 'Media', path: '/admin/media', icon: MdPhotoLibrary },
         { name: 'Pengaturan', path: '/admin/settings', icon: MdSettings },
     ];
@@ -41,12 +46,12 @@ const AdminLayout = () => {
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed lg:static inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 transform transition-transform lg:transform-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-                <div className="h-16 flex items-center px-6 border-b border-slate-800">
+            <aside className={`fixed lg:static inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 transform transition-transform lg:transform-none flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+                <div className="h-16 flex items-center px-6 border-b border-slate-800 shrink-0">
                     <h1 className="font-bold text-lg">Admin Panel</h1>
                 </div>
                 
-                <nav className="p-4 space-y-1">
+                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                     {menuItems.map((item) => (
                         <NavLink
                             key={item.path}
@@ -67,7 +72,7 @@ const AdminLayout = () => {
                     ))}
                 </nav>
 
-                <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-800">
+                <div className="p-4 border-t border-slate-800 shrink-0">
                     <button
                         onClick={handleLogout}
                         className="flex items-center gap-3 px-4 py-3 text-sm text-slate-300 hover:bg-slate-800 hover:text-white w-full transition-colors"
@@ -90,6 +95,17 @@ const AdminLayout = () => {
                     </button>
                     
                     <div className="flex-1" />
+
+                    <a 
+                        href="/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="mr-4 lg:mr-6 flex items-center gap-2 px-3 py-2 bg-slate-50 text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-colors text-sm font-medium border border-slate-200 rounded-md"
+                    >
+                        <MdPublic size={18} />
+                        <span className="hidden sm:inline">Lihat Live Website</span>
+                        <span className="sm:hidden">Web</span>
+                    </a>
                     
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-slate-200 flex items-center justify-center">

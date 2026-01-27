@@ -1,14 +1,28 @@
 import { useEffect, useState } from 'react';
 import { MdClose, MdExpandMore, MdMenu } from 'react-icons/md';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { profileData } from '../data/mockData';
+import api from '../api/axios';
+import ENDPOINTS from '../api/endpoints';
 
 const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [openDropdown, setOpenDropdown] = useState(null);
     const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(null);
+    const [profile, setProfile] = useState(null);
     const location = useLocation();
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const res = await api.get(ENDPOINTS.PROFILE.GET);
+                setProfile(res.data?.data || res.data);
+            } catch (error) {
+                console.log('Failed to fetch profile for navbar');
+            }
+        };
+        fetchProfile();
+    }, []);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -58,17 +72,19 @@ const Navbar = () => {
                     <div className="h-20 flex justify-between items-center">
                         {/* Brand */}
                         <Link to="/" className="flex items-center gap-3">
-                            <img 
-                                src={profileData.logo} 
-                                alt="Logo" 
-                                className="h-10 w-auto" 
-                            />
+                            {profile?.logo && (
+                                <img 
+                                    src={profile.logo} 
+                                    alt="Logo" 
+                                    className="h-10 w-auto" 
+                                />
+                            )}
                             <div>
                                 <span className="font-bold text-lg block leading-tight text-white">
-                                    {profileData.name}
+                                    {profile?.name || 'Nagari'}
                                 </span>
                                 <span className="text-xs text-white/70">
-                                    {profileData.kabupaten}
+                                    {profile?.kabupaten || ''}
                                 </span>
                             </div>
                         </Link>

@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { MdAdd, MdClose, MdDelete, MdEdit } from 'react-icons/md';
+import { toast } from 'sonner';
 import api from '../../api/axios';
 import ENDPOINTS from '../../api/endpoints';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 const AdminJorongs = () => {
     const [jorongs, setJorongs] = useState([]);
@@ -9,6 +11,8 @@ const AdminJorongs = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
     const [formData, setFormData] = useState({ name: '', area: '', distance: '', description: '' });
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
 
     const fetchData = async () => {
         try {
@@ -16,6 +20,7 @@ const AdminJorongs = () => {
             setJorongs(res.data || []);
         } catch (error) {
             console.error('Failed to fetch:', error);
+            toast.error('Gagal mengambil data');
         } finally {
             setLoading(false);
         }
@@ -26,18 +31,20 @@ const AdminJorongs = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const payload = { ...formData, area: parseFloat(formData.area) || 0, nagariId: 1 };
+            const payload = { ...formData, area: parseFloat(formData.area) || 0 };
             if (editingItem) {
                 await api.put(ENDPOINTS.JORONGS.UPDATE(editingItem.id), payload);
+                toast.success('Data jorong berhasil diperbarui');
             } else {
                 await api.post(ENDPOINTS.JORONGS.CREATE, payload);
+                toast.success('Data jorong berhasil ditambahkan');
             }
             setModalOpen(false);
             setEditingItem(null);
             setFormData({ name: '', area: '', distance: '', description: '' });
             fetchData();
         } catch (error) {
-            alert('Gagal menyimpan data');
+            toast.error('Gagal menyimpan data');
         }
     };
 
@@ -52,9 +59,19 @@ const AdminJorongs = () => {
         setModalOpen(true);
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Yakin ingin menghapus?')) return;
-        try { await api.delete(ENDPOINTS.JORONGS.DELETE(id)); fetchData(); } catch { alert('Gagal menghapus'); }
+    const handleDeleteClick = (id) => {
+        setDeleteId(id);
+        setConfirmOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        try { 
+            await api.delete(ENDPOINTS.JORONGS.DELETE(deleteId)); 
+            fetchData(); 
+            toast.success('Data jorong berhasil dihapus');
+        } catch { 
+            toast.error('Gagal menghapus data'); 
+        }
     };
 
     return (
@@ -88,7 +105,7 @@ const AdminJorongs = () => {
                                 <td className="px-6 py-4 text-slate-600">{item.distance || '-'}</td>
                                 <td className="px-6 py-4 text-right">
                                     <button onClick={() => handleEdit(item)} className="p-2 hover:bg-blue-50 text-slate-600 hover:text-blue-600"><MdEdit size={18} /></button>
-                                    <button onClick={() => handleDelete(item.id)} className="p-2 hover:bg-red-50 text-slate-600 hover:text-red-600"><MdDelete size={18} /></button>
+                                    <button onClick={() => handleDeleteClick(item.id)} className="p-2 hover:bg-red-50 text-slate-600 hover:text-red-600"><MdDelete size={18} /></button>
                                 </td>
                             </tr>
                         ))}
@@ -115,6 +132,16 @@ const AdminJorongs = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog
+                isOpen={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Hapus Jorong"
+                message="Apakah Anda yakin ingin menghapus data jorong ini?"
+                confirmText="Ya, Hapus"
+                type="danger"
+            />
         </div>
     );
 };
