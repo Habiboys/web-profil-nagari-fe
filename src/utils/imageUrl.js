@@ -1,31 +1,58 @@
-// Backend base URL for static files (images, uploads, etc)
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-
 /**
- * Get full image URL from a path
- * @param {string} path - Image path (e.g. '/uploads/media/image.jpg')
- * @returns {string} Full URL (e.g. 'http://localhost:5000/uploads/media/image.jpg')
+ * Get the full image URL from a path stored in the database
+ * Database stores relative paths like: /uploads/media/image.jpg
+ * This function prepends the backend URL from env
+ * 
+ * @param {string} imagePath - The image path from database
+ * @returns {string} Full URL to the image
  */
-export const getImageUrl = (path) => {
-    if (!path) return '';
+export const getImageUrl = (imagePath) => {
+    if (!imagePath) return '';
 
-    // If already a full URL (http/https), return as-is
-    if (path.startsWith('http://') || path.startsWith('https://')) {
-        return path;
+    // If already a full URL (starts with http), return as is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
     }
 
-    // If starts with /, combine with backend URL
-    if (path.startsWith('/')) {
-        return `${BACKEND_URL}${path}`;
-    }
+    // Get backend URL from env
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
-    // Otherwise, assume it needs /uploads prefix
-    return `${BACKEND_URL}/${path}`;
+    // Ensure path starts with /
+    const path = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+
+    return `${backendUrl}${path}`;
 };
 
 /**
- * Get backend URL constant
+ * Get the relative path from a full URL to store in database
+ * Removes the backend URL prefix, leaving only the path
+ * 
+ * @param {string} fullUrl - The full URL including backend URL
+ * @returns {string} Relative path to store in database
  */
-export const BACKEND_BASE_URL = BACKEND_URL;
+export const getImagePath = (fullUrl) => {
+    if (!fullUrl) return '';
 
-export default { getImageUrl, BACKEND_BASE_URL };
+    // If not a full URL, assume it's already a path
+    if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+        return fullUrl;
+    }
+
+    // Get backend URL from env
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
+    // Remove the backend URL to get just the path
+    if (fullUrl.startsWith(backendUrl)) {
+        return fullUrl.replace(backendUrl, '');
+    }
+
+    // Try to extract path from any URL
+    try {
+        const url = new URL(fullUrl);
+        return url.pathname;
+    } catch {
+        return fullUrl;
+    }
+};
+
+export default { getImageUrl, getImagePath };

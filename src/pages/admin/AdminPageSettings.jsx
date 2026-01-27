@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import api from '../../api/axios';
 import ENDPOINTS from '../../api/endpoints';
 import MediaPicker from '../../components/MediaPicker';
+import { getImagePath, getImageUrl } from '../../utils/imageUrl';
 
 // Mapping page keys to Indonesian labels - matches actual routes in App.jsx
 const PAGE_NAMES = {
@@ -62,8 +63,9 @@ const AdminPageSettings = () => {
     };
 
     const handleMediaSelect = (imageUrl) => {
-        // MediaPicker returns URL string directly
-        setFormData({ ...formData, image: imageUrl });
+        // Convert full URL to relative path for storage
+        const relativePath = getImagePath(imageUrl);
+        setFormData({ ...formData, image: relativePath });
         setShowMediaPicker(false);
     };
 
@@ -118,7 +120,7 @@ const AdminPageSettings = () => {
                             )}
                         </div>
                         {formData.image && (
-                            <img src={formData.image} alt="Preview" className="mt-3 h-40 object-cover rounded border border-slate-200" />
+                            <img src={getImageUrl(formData.image)} alt="Preview" className="mt-3 h-40 object-cover rounded border border-slate-200" />
                         )}
                     </div>
                     <div className="flex gap-2">
@@ -139,7 +141,7 @@ const AdminPageSettings = () => {
                         <div key={pageKey} className="bg-white border border-slate-200 overflow-hidden">
                             <div className="h-32 bg-slate-200 relative">
                                 {hero?.image ? (
-                                    <img src={hero.image} alt={pageKey} className="w-full h-full object-cover" />
+                                    <img src={getImageUrl(hero.image)} alt={pageKey} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-slate-400">
                                         Belum ada gambar
