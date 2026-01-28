@@ -33,7 +33,11 @@ const StrukturNagari = () => {
 
     // Manual Specific Mapping for Kaur
     // We try to find specific Kaurs first
-    const kaurTU = officials.filter(o => checkRole(o.position, 'kaur') && (checkRole(o.position, 'tata usaha') || checkRole(o.position, 'tu') || checkRole(o.position, 'umum')));
+    const kaurTU = officials.filter(o => 
+        checkRole(o.position, 'kaur') && 
+        (checkRole(o.position, 'tata usaha') || checkRole(o.position, 'tu') || checkRole(o.position, 'umum')) &&
+        !checkRole(o.position, 'staf') && !checkRole(o.position, 'staff')
+    );
     const kaurKeuangan = officials.filter(o => checkRole(o.position, 'kaur') && checkRole(o.position, 'keuangan'));
     const kaurPerencanaan = officials.filter(o => checkRole(o.position, 'kaur') && checkRole(o.position, 'perencanaan'));
 

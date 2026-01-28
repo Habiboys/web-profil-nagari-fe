@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { FaFacebook, FaInstagram, FaWhatsapp, FaYoutube } from 'react-icons/fa';
 import { MdEmail, MdLocationOn, MdPhone } from 'react-icons/md';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
@@ -59,11 +60,21 @@ const Footer = () => {
                             Website resmi Pemerintah {profile?.name || 'Nagari'}. Media informasi, layanan publik, dan transparansi nagari untuk masyarakat.
                         </p>
                         <div className="flex gap-4">
-                            {['MdFacebook', 'MdCameraAlt', 'MdPlayArrow'].map((icon, i) => (
-                                <a key={i} href="#" className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white hover:border-blue-500 transition-all">
-                                    {icon === 'MdFacebook' && <span className="font-bold text-lg">f</span>}
-                                    {icon === 'MdCameraAlt' && <span className="font-bold text-lg">Ig</span>}
-                                    {icon === 'MdPlayArrow' && <span className="font-bold text-lg">Yt</span>}
+                            {[
+                                { icon: <FaFacebook size={20} />, href: '#', color: 'hover:bg-blue-600', label: 'Facebook' },
+                                { icon: <FaInstagram size={20} />, href: '#', color: 'hover:bg-pink-600', label: 'Instagram' },
+                                { icon: <FaYoutube size={20} />, href: '#', color: 'hover:bg-red-600', label: 'YouTube' },
+                                { icon: <FaWhatsapp size={20} />, href: 'https://whatsapp.com/channel/0029VbCQmYjHgZWj0PG6WE2Q', color: 'hover:bg-green-600', label: 'WhatsApp' }
+                            ].map((item, i) => (
+                                <a 
+                                    key={i} 
+                                    href={item.href} 
+                                    target={item.href.startsWith('http') ? '_blank' : undefined}
+                                    rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                                    className={`w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-transparent transition-all ${item.color}`}
+                                    aria-label={item.label}
+                                >
+                                    {item.icon}
                                 </a>
                             ))}
                         </div>
