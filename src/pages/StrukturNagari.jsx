@@ -61,7 +61,8 @@ const StrukturNagari = () => {
         checkRole(o.position, 'kaur') && 
         !kaurTU.includes(o) &&
         !kaurKeuangan.includes(o) &&
-        !kaurPerencanaan.includes(o)
+        !kaurPerencanaan.includes(o) &&
+        !checkRole(o.position, 'staf') && !checkRole(o.position, 'staff')
     );
 
     const OfficialCard = ({ item, isMain = false }) => (
@@ -122,9 +123,6 @@ const StrukturNagari = () => {
 
                      {/* 3. CENTRAL LINE (Wali to before Jorong) - Extended height to reach bottom */}
                      {/* Increased to 920px to accomodate tall content in Kasi/Kaur sections */}
-                     <div className="line-v top-0 left-1/2 h-[920px] bg-slate-300 z-0"></div>
-
-
                      {/* Branch Drops */}
                      {/* Left Drop to Kasi */}
                      <div className="line-v h-40 left-1/4 top-0 bg-slate-400"></div>
@@ -133,7 +131,10 @@ const StrukturNagari = () => {
                      <div className="line-v h-12 right-1/4 top-0 bg-slate-400"></div>
 
                      {/* === CONTENT GRID === */}
-                     <div className="grid grid-cols-2 gap-8 relative z-10 mb-16">
+                     <div className="grid grid-cols-2 gap-8 relative z-10 pb-16">
+                        {/* Central Line scoped to this grid's height */}
+                        <div className="line-v top-0 left-1/2 bottom-0 bg-slate-300 z-0"></div>
+
                         {/* LEFT COLUMN: KASI */}
                         <div className="pt-40 flex flex-col items-center">
                              <div className="bg-slate-100 px-3 py-1 rounded text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4 z-10 relative border border-slate-200 shadow-sm">
@@ -191,7 +192,7 @@ const StrukturNagari = () => {
                      </div>
 
                      {/* BOTTOM: JORONG (Inside Relative Container) */}
-                     <div className="relative z-10 pt-4">
+                     <div className="relative z-10">
                         <div className="text-center mb-8 relative bg-slate-50 pt-4"> {/* Added bg-slate-50 to mask line */}
                              {/* Small Connector from Central Line to Badge */}
                             <span className="bg-blue-50 text-blue-700 px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest border border-blue-100 relative z-20">
