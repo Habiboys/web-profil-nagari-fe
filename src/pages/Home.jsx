@@ -184,7 +184,7 @@ const Home = () => {
             <section className="bg-slate-50 py-24">
                 <div className="container mx-auto px-4">
                     <div className="flex flex-col md:flex-row items-center gap-10 max-w-4xl mx-auto">
-                        <div className="w-52 h-64 bg-slate-200 shrink-0 border border-slate-300 overflow-hidden">
+                        <div className="w-52 h-72 bg-slate-200 shrink-0 border border-slate-300 overflow-hidden">
                             <img 
                                 src={displayProfile.headPhoto || 'https://placehold.co/300x400?text=Wali+Nagari'} 
                                 alt={displayProfile.headName} 

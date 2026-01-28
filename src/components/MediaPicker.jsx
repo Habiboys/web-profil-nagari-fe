@@ -61,7 +61,6 @@ const MediaPicker = ({ isOpen, onClose, onSelect, currentImage, aspectRatio = 16
 
     // Ratio presets
     const ratioPresets = [
-        { name: 'Bebas', value: null },
         { name: '1:1 (Kotak)', value: 1/1 },
         { name: '3:4 (Pas Foto)', value: 3/4 },
         { name: '4:3 (Landscape)', value: 4/3 },
@@ -200,7 +199,7 @@ const MediaPicker = ({ isOpen, onClose, onSelect, currentImage, aspectRatio = 16
     // Crop mode UI
     if (cropMode && imageToCrop) {
         return (
-            <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center z-[60] p-4">
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
                 <div className="bg-slate-900 w-full max-w-4xl max-h-[90vh] flex flex-col border border-slate-700 shadow-2xl">
                 {/* Header */}
                 <div className="flex justify-between items-center p-4 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700">
@@ -216,19 +215,18 @@ const MediaPicker = ({ isOpen, onClose, onSelect, currentImage, aspectRatio = 16
                 </div>
 
                 {/* Cropper */}
-                    {/* Cropper */}
-                    <div className="flex-1 relative min-h-[300px] bg-black">
-                        <Cropper
-                            image={imageToCrop}
-                            crop={crop}
-                            zoom={zoom}
-                            aspect={cropAspectRatio || undefined}
-                            onCropChange={setCrop}
-                            onCropComplete={onCropComplete}
-                            onZoomChange={setZoom}
-                            restrictPosition={false}
-                        />
-                    </div>
+                <div className="flex-1 relative min-h-[300px] bg-black">
+                    <Cropper
+                        image={imageToCrop}
+                        crop={crop}
+                        zoom={zoom}
+                        aspect={cropAspectRatio}
+                        onCropChange={setCrop}
+                        onCropComplete={onCropComplete}
+                        onZoomChange={setZoom}
+                        restrictPosition={false}
+                    />
+                </div>
 
                     {/* Controls */}
                     <div className="p-4 bg-slate-900/80 backdrop-blur-sm border-t border-slate-700 space-y-3">

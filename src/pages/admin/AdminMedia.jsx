@@ -48,6 +48,16 @@ const AdminMedia = () => {
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+    const [cropAspectRatio, setCropAspectRatio] = useState(16/9);
+    const [selectedRatioName, setSelectedRatioName] = useState('16:9');
+
+    // Ratio presets
+    const ratioPresets = [
+        { name: '1:1 (Kotak)', value: 1/1 },
+        { name: '3:4 (Pas Foto)', value: 3/4 },
+        { name: '4:3 (Landscape)', value: 4/3 },
+        { name: '16:9 (Widescreen)', value: 16/9 }
+    ];
 
     const fetchMedia = async (page = 1) => {
         setLoading(true);
@@ -89,6 +99,31 @@ const AdminMedia = () => {
         };
         reader.readAsDataURL(file);
         e.target.value = '';
+    };
+
+    const handleRatioChange = (ratioObj) => {
+        setCropAspectRatio(ratioObj.value);
+        setSelectedRatioName(ratioObj.name);
+    };
+
+    const handleSkipCrop = async () => {
+        if (!originalFile) return;
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', originalFile);
+            formData.append('alt', originalFile.name.replace(/\.[^/.]+$/, ''));
+            await api.post(ENDPOINTS.MEDIA.UPLOAD, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            toast.success('Gambar berhasil diupload');
+            fetchMedia();
+        } catch (error) {
+            toast.error('Gagal upload gambar');
+        } finally {
+            setUploading(false);
+            handleCropCancel();
+        }
     };
 
     const handleCropConfirm = async () => {
@@ -176,24 +211,51 @@ const AdminMedia = () => {
     // Crop mode UI
     if (cropMode && imageToCrop) {
         return (
-            <div className="fixed inset-0 bg-black/90 flex flex-col z-[60]">
-                <div className="flex justify-between items-center p-4 bg-slate-900 text-white">
-                    <h2 className="text-lg font-bold flex items-center gap-2"><MdCrop size={24} /> Crop Gambar</h2>
-                    <button onClick={handleCropCancel}><MdClose size={24} /></button>
-                </div>
-                <div className="flex-1 relative">
-                    <Cropper image={imageToCrop} crop={crop} zoom={zoom} aspect={16/9} onCropChange={setCrop} onCropComplete={onCropComplete} onZoomChange={setZoom} />
-                </div>
-                <div className="p-4 bg-slate-900">
-                    <div className="flex items-center gap-4 mb-4">
-                        <span className="text-white text-sm">Zoom:</span>
-                        <input type="range" min={1} max={3} step={0.1} value={zoom} onChange={(e) => setZoom(parseFloat(e.target.value))} className="flex-1" />
-                    </div>
-                    <div className="flex gap-3">
-                        <button onClick={handleCropCancel} className="flex-1 py-3 border border-slate-600 text-white hover:bg-slate-800">Batal</button>
-                        <button onClick={handleCropConfirm} disabled={uploading} className="flex-1 py-3 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2">
-                            {uploading ? 'Uploading...' : <><MdCheck size={20} /> Simpan & Upload</>}
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+                <div className="bg-slate-900 w-full max-w-4xl max-h-[90vh] flex flex-col border border-slate-700 shadow-2xl">
+                    <div className="flex justify-between items-center p-4 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700">
+                        <h2 className="text-lg font-bold flex items-center gap-2 text-white">
+                            <MdCrop size={24} className="text-blue-400" /> Crop & Sesuaikan Gambar
+                        </h2>
+                        <button onClick={handleCropCancel} className="text-slate-400 hover:text-white transition-colors">
+                            <MdClose size={24} />
                         </button>
+                    </div>
+                    <div className="flex-1 relative min-h-[300px] bg-black">
+                        <Cropper
+                            image={imageToCrop}
+                            crop={crop}
+                            zoom={zoom}
+                            aspect={cropAspectRatio}
+                            onCropChange={setCrop}
+                            onCropComplete={onCropComplete}
+                            onZoomChange={setZoom}
+                            restrictPosition={false}
+                        />
+                    </div>
+                    <div className="p-4 bg-slate-900/80 backdrop-blur-sm border-t border-slate-700 space-y-3">
+                        <div>
+                            <label className="text-white text-xs font-medium mb-2 block">Pilih Rasio Crop:</label>
+                            <div className="flex flex-wrap gap-2">
+                                {ratioPresets.map((ratio) => (
+                                    <button key={ratio.name} onClick={() => handleRatioChange(ratio)} className={`px-3 py-1.5 text-xs font-medium transition-all ${selectedRatioName === ratio.name ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
+                                        {ratio.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <span className="text-white text-xs font-medium min-w-[50px]">Zoom:</span>
+                            <input type="range" min={1} max={3} step={0.1} value={zoom} onChange={(e) => setZoom(parseFloat(e.target.value))} className="flex-1 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                            <span className="text-slate-400 text-xs min-w-[35px]">{zoom.toFixed(1)}x</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                            <button onClick={handleCropCancel} className="py-2 border-2 border-slate-600 text-white hover:bg-slate-800 transition-colors font-medium text-sm">Batal</button>
+                            <button onClick={handleSkipCrop} disabled={uploading} className="py-2 bg-slate-700 text-white hover:bg-slate-600 disabled:opacity-50 transition-colors font-medium text-sm">{uploading ? 'Uploading...' : 'Skip Crop'}</button>
+                            <button onClick={handleCropConfirm} disabled={uploading} className="py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 flex items-center justify-center gap-2 font-medium transition-all text-sm">
+                                {uploading ? 'Uploading...' : <><MdCheck size={18} /> Crop & Upload</>}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
