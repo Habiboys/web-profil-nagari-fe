@@ -560,32 +560,67 @@ const Home = () => {
                             ))}
                         </div>
 
-                        {/* Commodities Badge Cloud */}
-                        <div className="flex flex-wrap justify-center gap-3">
+                        {/* Commodities Cards with Full Info */}
+                        <div className="grid md:grid-cols-3 gap-6">
                             {commodities
                                 .filter(c => activeCommodityCategory === 'Semua' || c.category === activeCommodityCategory)
                                 .map((commodity, idx) => {
                                     // Color variations for visual interest
                                     const colors = [
-                                        'bg-green-50 border-green-200 text-green-800 hover:bg-green-100',
-                                        'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100',
-                                        'bg-teal-50 border-teal-200 text-teal-800 hover:bg-teal-100',
-                                        'bg-lime-50 border-lime-200 text-lime-800 hover:bg-lime-100'
+                                        { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-800', icon: 'bg-green-100 text-green-600' },
+                                        { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-800', icon: 'bg-emerald-100 text-emerald-600' },
+                                        { bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-800', icon: 'bg-teal-100 text-teal-600' },
+                                        { bg: 'bg-lime-50', border: 'border-lime-200', text: 'text-lime-800', icon: 'bg-lime-100 text-lime-600' }
                                     ];
-                                    const colorClass = colors[idx % colors.length];
+                                    const colorScheme = colors[idx % colors.length];
                                     
                                     return (
                                         <div
                                             key={commodity.id || idx}
-                                            className={`px-5 py-3 border-2 font-medium transition-all cursor-default ${colorClass}`}
+                                            className={`${colorScheme.bg} border ${colorScheme.border} p-6 rounded-xl transition-all hover:shadow-lg hover:-translate-y-1 relative overflow-hidden group`}
                                         >
-                                            <div className="flex items-center gap-2">
-                                                <Icons.MdGrass size={18} />
-                                                <span>{commodity.name}</span>
-                                                {commodity.amount && (
-                                                    <span className="text-xs opacity-75 ml-1">({commodity.amount})</span>
-                                                )}
+                                            <div className="flex items-start justify-between mb-4 relative z-10">
+                                                <div className={`${colorScheme.icon} w-12 h-12 rounded-lg flex items-center justify-center shrink-0 shadow-sm`}>
+                                                    <Icons.MdGrass size={24} />
+                                                </div>
+                                                <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${colorScheme.bg} border ${colorScheme.border} ${colorScheme.text}`}>
+                                                    Komoditas
+                                                </div>
                                             </div>
+                                            
+                                            <h3 className={`font-bold text-xl ${colorScheme.text} mb-4 relative z-10`}>
+                                                {commodity.name}
+                                            </h3>
+                                            
+                                            <div className="space-y-3 relative z-10">
+                                                <div className="flex items-center justify-between text-sm py-2 border-b border-black/5 last:border-0">
+                                                    <span className="text-slate-500 flex items-center gap-2">
+                                                        <Icons.MdLandscape size={16} /> Luas Lahan
+                                                    </span>
+                                                    <span className="font-semibold text-slate-700">
+                                                        {commodity.area ? `${commodity.area} Ha` : '-'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between text-sm py-2 border-b border-black/5 last:border-0">
+                                                    <span className="text-slate-500 flex items-center gap-2">
+                                                        <Icons.MdInventory size={16} /> Produksi
+                                                    </span>
+                                                    <span className="font-semibold text-slate-700">
+                                                        {commodity.production || '-'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between text-sm py-2 border-b border-black/5 last:border-0">
+                                                    <span className="text-slate-500 flex items-center gap-2">
+                                                        <Icons.MdMonetizationOn size={16} /> Harga
+                                                    </span>
+                                                    <span className="font-semibold text-slate-700">
+                                                        {commodity.price || '-'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Decorative Background Icon */}
+                                            <Icons.MdGrass className={`absolute -bottom-4 -right-4 size-32 opacity-5 ${colorScheme.text} group-hover:scale-110 transition-transform duration-500`} />
                                         </div>
                                     );
                                 })}
