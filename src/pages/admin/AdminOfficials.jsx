@@ -208,6 +208,7 @@ const AdminOfficials = () => {
                 isOpen={mediaPickerOpen} 
                 onClose={() => setMediaPickerOpen(false)} 
                 onSelect={handleImageSelect}
+                aspectRatio={3/4}
             />
 
             <ConfirmDialog

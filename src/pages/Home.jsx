@@ -6,6 +6,7 @@ import api from '../api/axios';
 import ENDPOINTS from '../api/endpoints';
 import MapSection from '../components/MapSection';
 import SectionHeader from '../components/SectionHeader';
+import TourismDetailModal from '../components/TourismDetailModal';
 import { heroShortcuts } from '../data/mockData';
 import usePageHero from '../hooks/usePageHero';
 
@@ -21,14 +22,20 @@ const Home = () => {
     const [tourism, setTourism] = useState([]);
     const [assets, setAssets] = useState([]);
     const [gallery, setGallery] = useState([]);
+    const [facilities, setFacilities] = useState([]);
+    const [commodities, setCommodities] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedTourism, setSelectedTourism] = useState(null);
+    const [isTourismModalOpen, setIsTourismModalOpen] = useState(false);
+    const [activeCategory, setActiveCategory] = useState('Semua');
+    const [activeCommodityCategory, setActiveCommodityCategory] = useState('Semua');
     
     const { hero: homeHero } = usePageHero('home');
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [profileRes, officialsRes, newsRes, productsRes, demoRes, geoRes, jorongRes, potensiRes, tourismRes, assetsRes, galleryRes] = await Promise.all([
+                const [profileRes, officialsRes, newsRes, productsRes, demoRes, geoRes, jorongRes, potensiRes, tourismRes, assetsRes, galleryRes, facilitiesRes, commoditiesRes] = await Promise.all([
                     api.get(ENDPOINTS.PROFILE.GET),
                     api.get(ENDPOINTS.OFFICIALS.GET_ALL),
                     api.get(ENDPOINTS.NEWS.GET_ALL),
@@ -40,6 +47,8 @@ const Home = () => {
                     api.get(ENDPOINTS.TOURISM.GET_ALL),
                     api.get(ENDPOINTS.ASSETS.GET_ALL),
                     api.get(ENDPOINTS.GALLERY.GET_ALL),
+                    api.get(ENDPOINTS.FACILITIES.GET_ALL),
+                    api.get(ENDPOINTS.COMMODITIES.GET_ALL),
                 ]);
                 setProfile(profileRes.data?.data || profileRes.data);
                 
@@ -69,6 +78,12 @@ const Home = () => {
                 
                 const galleryData = galleryRes.data?.data || galleryRes.data || [];
                 setGallery(Array.isArray(galleryData) ? galleryData.slice(0, 8) : []);
+                
+                const facilitiesData = facilitiesRes.data?.data || facilitiesRes.data || [];
+                setFacilities(Array.isArray(facilitiesData) ? facilitiesData : []);
+                
+                const commoditiesData = commoditiesRes.data?.data || commoditiesRes.data || [];
+                setCommodities(Array.isArray(commoditiesData) ? commoditiesData : []);
             } catch (error) {
                 console.error('Failed to fetch home data:', error);
             } finally {
@@ -188,40 +203,75 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Wisata Nagari - Horizontal Scroll Cards */}
+            {/* Wisata Nagari - Carousel with Navigation */}
             {tourism.length > 0 && (
-                <section className="py-24 overflow-hidden">
-                    <div className="container mx-auto px-4 mb-8">
-                        <div className="flex justify-between items-center">
+                <section className="py-24 bg-slate-50">
+                    <div className="container mx-auto px-4">
+                        <div className="flex justify-between items-center mb-8">
                             <SectionHeader title="Destinasi Wisata" subtitle="Keindahan alam dan budaya Nagari" align="left" />
-                            <Link to="/listing" className="text-blue-600 hover:underline font-medium flex items-center gap-1">
+                            <Link to="/tourism" className="text-blue-600 hover:underline font-medium flex items-center gap-1">
                                 Lihat Semua <MdArrowForward />
                             </Link>
                         </div>
-                    </div>
-                    <div className="relative">
-                        <div className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 md:px-8 pb-4">
-                            <div className="shrink-0 w-[calc((100vw-1280px)/2)] hidden xl:block"></div>
-                            {tourism.map((item, idx) => (
-                                <div key={item.id || idx} className="shrink-0 w-80 snap-start group">
-                                    <div className="relative h-56 overflow-hidden mb-4">
-                                        <img 
-                                            src={item.image || 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&q=80'} 
-                                            alt={item.name} 
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                                        <div className="absolute bottom-4 left-4 right-4 text-white">
-                                            <div className="flex items-center gap-1 text-sm mb-1 opacity-80">
-                                                <MdLocationOn size={14} />
-                                                <span>{item.location || 'Nagari Talang Anau'}</span>
+                        
+                        <div className="relative">
+                            {/* Navigation Buttons */}
+                            {tourism.length > 3 && (
+                                <>
+                                    <button
+                                        onClick={() => {
+                                            const container = document.getElementById('tourism-scroll');
+                                            container.scrollBy({ left: -400, behavior: 'smooth' });
+                                        }}
+                                        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border-2 border-slate-300 hover:border-blue-600 hover:bg-blue-600 hover:text-white p-3 shadow-lg transition-all hidden md:block"
+                                    >
+                                        <Icons.MdChevronLeft size={24} />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const container = document.getElementById('tourism-scroll');
+                                            container.scrollBy({ left: 400, behavior: 'smooth' });
+                                        }}
+                                        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border-2 border-slate-300 hover:border-blue-600 hover:bg-blue-600 hover:text-white p-3 shadow-lg transition-all hidden md:block"
+                                    >
+                                        <Icons.MdChevronRight size={24} />
+                                    </button>
+                                </>
+                            )}
+
+                            {/* Scrollable Container */}
+                            <div 
+                                id="tourism-scroll"
+                                className="flex gap-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-4 px-1"
+                                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                            >
+                                {tourism.map((item, idx) => (
+                                    <div 
+                                        key={item.id || idx} 
+                                        className="shrink-0 w-80 snap-center group cursor-pointer"
+                                        onClick={() => {
+                                            setSelectedTourism(item);
+                                            setIsTourismModalOpen(true);
+                                        }}
+                                    >
+                                        <div className="relative h-56 overflow-hidden mb-4 border border-slate-200">
+                                            <img 
+                                                src={item.image || 'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=800&q=80'} 
+                                                alt={item.name} 
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                            <div className="absolute bottom-4 left-4 right-4 text-white">
+                                                <div className="flex items-center gap-1 text-sm mb-1 opacity-80">
+                                                    <MdLocationOn size={14} />
+                                                    <span>{item.location || 'Nagari Talang Anau'}</span>
+                                                </div>
+                                                <h3 className="font-bold text-lg">{item.name}</h3>
                                             </div>
-                                            <h3 className="font-bold text-lg">{item.name}</h3>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                            <div className="shrink-0 w-[calc((100vw-1280px)/2)] hidden xl:block"></div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -251,6 +301,101 @@ const Home = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Fasilitas Nagari - Tabel Sederhana */}
+            {facilities.length > 0 && (
+                <section className="bg-white py-24">
+                    <div className="container mx-auto px-4">
+                        <SectionHeader title="Fasilitas Nagari" subtitle="Sarana dan prasarana untuk masyarakat" />
+                        
+                        {/* Category Tabs - Bahasa Indonesia */}
+                        <div className="flex flex-wrap justify-center gap-2 mb-8">
+                            {['Semua', ...new Set(facilities.map(f => {
+                                // Translate category to Indonesian
+                                const translateCategory = (cat) => {
+                                    const map = {
+                                        'education': 'Pendidikan',
+                                        'health': 'Kesehatan',
+                                        'worship': 'Ibadah',
+                                        'sports': 'Olahraga',
+                                        'government': 'Pemerintahan'
+                                    };
+                                    return map[cat] || cat;
+                                };
+                                return translateCategory(f.category);
+                            }).filter(Boolean))].map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setActiveCategory(cat)}
+                                    className={`px-6 py-2 font-medium transition-all ${
+                                        activeCategory === cat
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                    }`}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Tabel Fasilitas */}
+                        <div className="overflow-x-auto">
+                            <table className="w-full border border-slate-200">
+                                <thead className="bg-slate-100">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 border-b border-slate-200">No</th>
+                                        <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 border-b border-slate-200">Jenis</th>
+                                        <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 border-b border-slate-200">Kategori</th>
+                                        <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 border-b border-slate-200">Jumlah</th>
+                                        <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 border-b border-slate-200">Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {facilities
+                                        .filter(f => {
+                                            if (activeCategory === 'Semua') return true;
+                                            // Translate category for comparison
+                                            const translateCategory = (cat) => {
+                                                const map = {
+                                                    'education': 'Pendidikan',
+                                                    'health': 'Kesehatan',
+                                                    'worship': 'Ibadah',
+                                                    'sports': 'Olahraga',
+                                                    'government': 'Pemerintahan'
+                                                };
+                                                return map[cat] || cat;
+                                            };
+                                            return translateCategory(f.category) === activeCategory;
+                                        })
+                                        .map((facility, idx) => {
+                                            // Translate category to Indonesian for display
+                                            const translateCategory = (cat) => {
+                                                const map = {
+                                                    'education': 'Pendidikan',
+                                                    'health': 'Kesehatan',
+                                                    'worship': 'Ibadah',
+                                                    'sports': 'Olahraga',
+                                                    'government': 'Pemerintahan'
+                                                };
+                                                return map[cat] || cat;
+                                            };
+                                            
+                                            return (
+                                                <tr key={facility.id || idx} className="hover:bg-slate-50">
+                                                    <td className="px-4 py-3 text-sm text-slate-900 border-b border-slate-200">{idx + 1}</td>
+                                                    <td className="px-4 py-3 text-sm text-slate-900 border-b border-slate-200">{facility.type || '-'}</td>
+                                                    <td className="px-4 py-3 text-sm text-slate-600 border-b border-slate-200">{translateCategory(facility.category) || '-'}</td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-blue-600 border-b border-slate-200">{facility.count || '-'}</td>
+                                                    <td className="px-4 py-3 text-sm text-slate-600 border-b border-slate-200">{facility.note || '-'}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* Aset Nagari - List Style with Value & Year */}
             {assets.length > 0 && (
@@ -308,9 +453,13 @@ const Home = () => {
                     </div>
                     <div className="grid md:grid-cols-3 gap-6">
                         {news.length > 0 ? news.map((item) => (
-                            <div key={item.id} className="bg-white border border-slate-200">
-                                <div className="h-44 bg-slate-100">
-                                    {item.image && <img src={item.image} alt={item.title} className="w-full h-44 object-cover" />}
+                            <Link 
+                                key={item.id} 
+                                to={`/news/${item.id}`}
+                                className="bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all group"
+                            >
+                                <div className="h-44 bg-slate-100 overflow-hidden">
+                                    {item.image && <img src={item.image} alt={item.title} className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300" />}
                                 </div>
                                 <div className="p-5">
                                     <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
@@ -318,12 +467,12 @@ const Home = () => {
                                         <span>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('id-ID') : ''}</span>
                                         {item.category && <span className="text-blue-600">• {item.category}</span>}
                                     </div>
-                                    <h3 className="font-medium text-slate-900 mb-2 line-clamp-2">
-                                        <Link to={`/news/${item.id}`} className="hover:text-blue-600">{item.title}</Link>
+                                    <h3 className="font-medium text-slate-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                                        {item.title}
                                     </h3>
                                     <p className="text-sm text-slate-600 line-clamp-2">{item.summary}</p>
                                 </div>
-                            </div>
+                            </Link>
                         )) : (
                             <p className="col-span-3 text-center text-slate-500">Belum ada berita</p>
                         )}
@@ -388,6 +537,63 @@ const Home = () => {
                 </div>
             </section>
 
+            {/* Komoditas Nagari - Badge Cloud Style */}
+            {commodities.length > 0 && (
+                <section className="bg-slate-50 py-24">
+                    <div className="container mx-auto px-4">
+                        <SectionHeader title="Komoditas Nagari" subtitle="Hasil bumi dan produksi unggulan" />
+                        
+                        {/* Category Tabs */}
+                        <div className="flex flex-wrap justify-center gap-2 mb-12">
+                            {['Semua', ...new Set(commodities.map(c => c.category).filter(Boolean))].map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setActiveCommodityCategory(cat)}
+                                    className={`px-6 py-2 font-medium transition-all ${
+                                        activeCommodityCategory === cat
+                                            ? 'bg-green-600 text-white'
+                                            : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
+                                    }`}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Commodities Badge Cloud */}
+                        <div className="flex flex-wrap justify-center gap-3">
+                            {commodities
+                                .filter(c => activeCommodityCategory === 'Semua' || c.category === activeCommodityCategory)
+                                .map((commodity, idx) => {
+                                    // Color variations for visual interest
+                                    const colors = [
+                                        'bg-green-50 border-green-200 text-green-800 hover:bg-green-100',
+                                        'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100',
+                                        'bg-teal-50 border-teal-200 text-teal-800 hover:bg-teal-100',
+                                        'bg-lime-50 border-lime-200 text-lime-800 hover:bg-lime-100'
+                                    ];
+                                    const colorClass = colors[idx % colors.length];
+                                    
+                                    return (
+                                        <div
+                                            key={commodity.id || idx}
+                                            className={`px-5 py-3 border-2 font-medium transition-all cursor-default ${colorClass}`}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                <Icons.MdGrass size={18} />
+                                                <span>{commodity.name}</span>
+                                                {commodity.amount && (
+                                                    <span className="text-xs opacity-75 ml-1">({commodity.amount})</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+                    </div>
+                </section>
+            )}
+
             {/* Galeri - Masonry Grid */}
             {gallery.length > 0 && (
                 <section className="py-24">
@@ -419,6 +625,13 @@ const Home = () => {
             )}
             
             <MapSection />
+
+            {/* Tourism Detail Modal */}
+            <TourismDetailModal
+                tourism={selectedTourism}
+                isOpen={isTourismModalOpen}
+                onClose={() => setIsTourismModalOpen(false)}
+            />
         </div>
     );
 };

@@ -62,7 +62,7 @@ const StrukturNagari = () => {
 
     const OfficialCard = ({ item, isMain = false }) => (
         <div className={`bg-white border border-slate-200 flex-shrink-0 relative z-20 ${isMain ? 'w-56' : 'w-44'}`}>
-            <div className={`${isMain ? 'h-64' : 'h-52'} bg-slate-100 overflow-hidden relative`}>
+            <div className={`${isMain ? 'h-72' : 'h-56'} bg-slate-100 overflow-hidden relative`}>
                 {item.image ? (
                     <img src={getImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
                 ) : (
@@ -116,9 +116,8 @@ const StrukturNagari = () => {
                      {/* 2. Horizontal Bar (Split Left/Right) */}
                      <div className="line-h w-1/2 left-1/4 top-0 bg-slate-400"></div>
 
-                     {/* 3. FULL CENTRAL LINE (Wali straight to Jorong) */}
-                     {/* This line now can span comfortably to bottom because Jorong is inside this div */}
-                     <div className="line-v top-0 left-1/2 bottom-8 bg-slate-300 z-0"></div>
+                     {/* 3. CENTRAL LINE (Wali to before Jorong) - Fixed height */}
+                     <div className="line-v top-0 left-1/2 h-[480px] bg-slate-300 z-0"></div>
 
 
                      {/* Branch Drops */}

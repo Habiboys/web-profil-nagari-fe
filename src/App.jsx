@@ -16,6 +16,7 @@ import Ppid from './pages/Ppid';
 import ProductDetail from './pages/ProductDetail';
 import StrukturNagari from './pages/StrukturNagari';
 import TentangNagari from './pages/TentangNagari';
+import Tourism from './pages/Tourism';
 import VisiMisi from './pages/VisiMisi';
 
 // Admin Pages
@@ -61,6 +62,7 @@ function App() {
           <Route path="marketplace" element={<Marketplace />} />
           <Route path="marketplace/:id" element={<ProductDetail />} />
           <Route path="assets" element={<Assets />} />
+          <Route path="tourism" element={<Tourism />} />
         </Route>
 
         {/* Admin Routes */}

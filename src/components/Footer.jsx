@@ -1,31 +1,55 @@
+import { useEffect, useState } from 'react';
 import { MdEmail, MdLocationOn, MdPhone } from 'react-icons/md';
 import { Link } from 'react-router-dom';
-import { profileData } from '../data/mockData';
+import api from '../api/axios';
+import ENDPOINTS from '../api/endpoints';
+import { getImageUrl } from '../utils/imageUrl';
 
 const Footer = () => {
+    const [profile, setProfile] = useState(null);
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const response = await api.get(ENDPOINTS.PROFILE.GET);
+                setProfile(response.data);
+            } catch (error) {
+                console.error('Failed to fetch profile:', error);
+            }
+        };
+        fetchProfile();
+    }, []);
+
     const links = [
-        { name: 'Profil', path: '/profile' },
+        { name: 'Tentang Nagari', path: '/tentang' },
+        { name: 'Visi & Misi', path: '/visi-misi' },
+        { name: 'Struktur', path: '/struktur' },
         { name: 'Infografis', path: '/infographics' },
+        { name: 'IDM', path: '/idm' },
+        { name: 'Wisata', path: '/tourism' },
         { name: 'Berita', path: '/news' },
-        { name: 'Pasar', path: '/marketplace' },
+        { name: 'Pasar Nagari', path: '/marketplace' },
+        { name: 'Aset', path: '/assets' },
         { name: 'PPID', path: '/ppid' },
     ];
 
     return (
         <footer className="bg-slate-900 text-white">
             <div className="container mx-auto px-4 py-16">
-                <div className="grid md:grid-cols-3 gap-12">
+                <div className="grid md:grid-cols-4 gap-8">
                     {/* Brand */}
-                    <div>
+                    <div className="md:col-span-2">
                         <div className="flex items-center gap-3 mb-4">
-                            <img src={profileData.logo} alt="Logo" className="h-10 w-auto brightness-200" />
+                            {profile?.logo && (
+                                <img src={getImageUrl(profile.logo)} alt="Logo" className="h-10 w-auto brightness-200" />
+                            )}
                             <div>
-                                <h3 className="font-bold text-lg">{profileData.name}</h3>
-                                <p className="text-slate-400 text-sm">{profileData.kabupaten}</p>
+                                <h3 className="font-bold text-lg">{profile?.name || 'Nagari Talang Anau'}</h3>
+                                <p className="text-slate-400 text-sm">{profile?.kabupaten || 'Lima Puluh Kota'}</p>
                             </div>
                         </div>
                         <p className="text-slate-400 text-sm leading-relaxed">
-                            Website resmi Pemerintah {profileData.name}. Media informasi dan transparansi publik.
+                            Website resmi Pemerintah {profile?.name || 'Nagari'}. Media informasi dan transparansi publik.
                         </p>
                     </div>
 
@@ -52,15 +76,15 @@ const Footer = () => {
                         <ul className="space-y-3">
                             <li className="flex items-start gap-3 text-slate-300 text-sm">
                                 <MdLocationOn className="mt-0.5 text-slate-500 shrink-0" size={18} />
-                                <span>{profileData.address}</span>
+                                <span>{profile?.address || '-'}</span>
                             </li>
                             <li className="flex items-center gap-3 text-slate-300 text-sm">
                                 <MdEmail className="text-slate-500 shrink-0" size={18} />
-                                <span>{profileData.email}</span>
+                                <span>{profile?.email || '-'}</span>
                             </li>
                             <li className="flex items-center gap-3 text-slate-300 text-sm">
                                 <MdPhone className="text-slate-500 shrink-0" size={18} />
-                                <span>{profileData.phone}</span>
+                                <span>{profile?.phone || '-'}</span>
                             </li>
                         </ul>
                     </div>
@@ -71,7 +95,7 @@ const Footer = () => {
             <div className="border-t border-slate-800">
                 <div className="container mx-auto px-4 py-6">
                     <p className="text-center text-slate-500 text-sm">
-                        © {new Date().getFullYear()} {profileData.name}. All rights reserved.
+                        © {new Date().getFullYear()} {profile?.name || 'Nagari Talang Anau'}. All rights reserved.
                     </p>
                 </div>
             </div>

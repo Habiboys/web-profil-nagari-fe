@@ -221,10 +221,10 @@ export const villageStructure = [
 
 // ===== HERO SHORTCUTS =====
 export const heroShortcuts = [
-    { label: "Layanan", icon: "MdSupportAgent", path: "/services" },
-    { label: "Wisata", icon: "MdLandscape", path: "/infographics" },
+    { label: "Infografis", icon: "MdInsights", path: "/infographics" },
+    { label: "Wisata", icon: "MdLandscape", path: "/tourism" },
     { label: "Produk", icon: "MdStore", path: "/marketplace" },
-    { label: "Transparansi", icon: "MdAnalytics", path: "/infographics" }
+    { label: "Berita", icon: "MdNewspaper", path: "/news" }
 ];
 
 // ===== DATA APBDES =====

@@ -56,6 +56,17 @@ const MediaPicker = ({ isOpen, onClose, onSelect, currentImage, aspectRatio = 16
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+    const [cropAspectRatio, setCropAspectRatio] = useState(aspectRatio || 16/9);
+    const [selectedRatioName, setSelectedRatioName] = useState('16:9');
+
+    // Ratio presets
+    const ratioPresets = [
+        { name: 'Bebas', value: null },
+        { name: '1:1 (Kotak)', value: 1/1 },
+        { name: '3:4 (Pas Foto)', value: 3/4 },
+        { name: '4:3 (Landscape)', value: 4/3 },
+        { name: '16:9 (Widescreen)', value: 16/9 }
+    ];
 
     const fetchMedia = async () => {
         setLoading(true);
@@ -76,6 +87,13 @@ const MediaPicker = ({ isOpen, onClose, onSelect, currentImage, aspectRatio = 16
             setSelectedMedia(null);
             setCropMode(false);
             setImageToCrop(null);
+            // Set default ratio based on prop
+            if (aspectRatio) {
+                setCropAspectRatio(aspectRatio);
+                // Find matching preset name
+                const preset = ratioPresets.find(r => r.value === aspectRatio);
+                if (preset) setSelectedRatioName(preset.name);
+            }
         }
     }, [isOpen]);
 
@@ -95,6 +113,39 @@ const MediaPicker = ({ isOpen, onClose, onSelect, currentImage, aspectRatio = 16
         };
         reader.readAsDataURL(file);
         e.target.value = '';
+    };
+
+    const handleRatioChange = (ratioObj) => {
+        setCropAspectRatio(ratioObj.value);
+        setSelectedRatioName(ratioObj.name);
+    };
+
+    const handleSkipCrop = async () => {
+        if (!originalFile) return;
+
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', originalFile);
+            formData.append('alt', originalFile.name.replace(/\.[^/.]+$/, ''));
+            
+            const response = await api.post(ENDPOINTS.MEDIA.UPLOAD, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            const newMedia = response.data;
+            toast.success('Gambar berhasil diupload');
+            onSelect(getImageUrl(newMedia.path));
+            onClose();
+        } catch (error) {
+            toast.error('Gagal upload gambar');
+            console.error(error);
+        } finally {
+            setUploading(false);
+            setCropMode(false);
+            setImageToCrop(null);
+            setOriginalFile(null);
+        }
     };
 
     const handleCropConfirm = async () => {
@@ -149,32 +200,61 @@ const MediaPicker = ({ isOpen, onClose, onSelect, currentImage, aspectRatio = 16
     // Crop mode UI
     if (cropMode && imageToCrop) {
         return (
-            <div className="fixed inset-0 bg-black/90 flex flex-col z-[60]">
+            <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center z-[60] p-4">
+                <div className="bg-slate-900 w-full max-w-4xl max-h-[90vh] flex flex-col border border-slate-700 shadow-2xl">
                 {/* Header */}
-                <div className="flex justify-between items-center p-4 bg-slate-900 text-white">
-                    <h2 className="text-lg font-bold flex items-center gap-2">
-                        <MdCrop size={24} /> Crop Gambar
+                <div className="flex justify-between items-center p-4 bg-slate-900/80 backdrop-blur-sm border-b border-slate-700">
+                    <h2 className="text-lg font-bold flex items-center gap-2 text-white">
+                        <MdCrop size={24} className="text-blue-400" /> Crop & Sesuaikan Gambar
                     </h2>
-                    <button onClick={handleCropCancel}><MdClose size={24} /></button>
+                    <button 
+                        onClick={handleCropCancel}
+                        className="text-slate-400 hover:text-white transition-colors"
+                    >
+                        <MdClose size={24} />
+                    </button>
                 </div>
 
                 {/* Cropper */}
-                <div className="flex-1 relative">
-                    <Cropper
-                        image={imageToCrop}
-                        crop={crop}
-                        zoom={zoom}
-                        aspect={aspectRatio}
-                        onCropChange={setCrop}
-                        onCropComplete={onCropComplete}
-                        onZoomChange={setZoom}
-                    />
-                </div>
+                    {/* Cropper */}
+                    <div className="flex-1 relative min-h-[300px] bg-black">
+                        <Cropper
+                            image={imageToCrop}
+                            crop={crop}
+                            zoom={zoom}
+                            aspect={cropAspectRatio || undefined}
+                            onCropChange={setCrop}
+                            onCropComplete={onCropComplete}
+                            onZoomChange={setZoom}
+                            restrictPosition={false}
+                        />
+                    </div>
 
-                {/* Controls */}
-                <div className="p-4 bg-slate-900">
-                    <div className="flex items-center gap-4 mb-4">
-                        <span className="text-white text-sm">Zoom:</span>
+                    {/* Controls */}
+                    <div className="p-4 bg-slate-900/80 backdrop-blur-sm border-t border-slate-700 space-y-3">
+                    {/* Ratio Selector */}
+                        <div>
+                            <label className="text-white text-xs font-medium mb-2 block">Pilih Rasio Crop:</label>
+                        <div className="flex flex-wrap gap-2">
+                            {ratioPresets.map((ratio) => (
+                                <button
+                                    key={ratio.name}
+                                    onClick={() => handleRatioChange(ratio)}
+                                        className={`px-3 py-1.5 text-xs font-medium transition-all ${
+                                        selectedRatioName === ratio.name
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                                    }`}
+                                >
+                                    {ratio.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Zoom Control */}
+                        <div className="flex items-center gap-3">
+                            <span className="text-white text-xs font-medium min-w-[50px]">Zoom:</span>
                         <input
                             type="range"
                             min={1}
@@ -182,23 +262,34 @@ const MediaPicker = ({ isOpen, onClose, onSelect, currentImage, aspectRatio = 16
                             step={0.1}
                             value={zoom}
                             onChange={(e) => setZoom(parseFloat(e.target.value))}
-                            className="flex-1"
-                        />
+                                className="flex-1 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                            />
+                            <span className="text-slate-400 text-xs min-w-[35px]">{zoom.toFixed(1)}x</span>
                     </div>
-                    <div className="flex gap-3">
-                        <button 
-                            onClick={handleCropCancel}
-                            className="flex-1 py-3 border border-slate-600 text-white hover:bg-slate-800"
+
+                    {/* Action Buttons */}
+                        <div className="grid grid-cols-3 gap-2">
+                            <button 
+                                onClick={handleCropCancel}
+                                className="py-2 border-2 border-slate-600 text-white hover:bg-slate-800 transition-colors font-medium text-sm"
                         >
                             Batal
-                        </button>
-                        <button 
-                            onClick={handleCropConfirm}
-                            disabled={uploading}
-                            className="flex-1 py-3 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                            </button>
+                            <button 
+                                onClick={handleSkipCrop}
+                                disabled={uploading}
+                                className="py-2 bg-slate-700 text-white hover:bg-slate-600 disabled:opacity-50 transition-colors font-medium text-sm"
                         >
-                            {uploading ? 'Uploading...' : <><MdCheck size={20} /> Simpan & Upload</>}
-                        </button>
+                            {uploading ? 'Uploading...' : 'Skip Crop'}
+                            </button>
+                            <button 
+                                onClick={handleCropConfirm}
+                                disabled={uploading}
+                                className="py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 disabled:opacity-50 flex items-center justify-center gap-2 font-medium transition-all text-sm"
+                            >
+                                {uploading ? 'Uploading...' : <><MdCheck size={18} /> Crop & Upload</>}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
