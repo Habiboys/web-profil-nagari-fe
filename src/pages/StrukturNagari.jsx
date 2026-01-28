@@ -116,8 +116,9 @@ const StrukturNagari = () => {
                      {/* 2. Horizontal Bar (Split Left/Right) */}
                      <div className="line-h w-1/2 left-1/4 top-0 bg-slate-400"></div>
 
-                     {/* 3. CENTRAL LINE (Wali to before Jorong) - Fixed height */}
-                     <div className="line-v top-0 left-1/2 h-[480px] bg-slate-300 z-0"></div>
+                     {/* 3. CENTRAL LINE (Wali to before Jorong) - Extended height to reach bottom */}
+                     {/* Increased to 920px to accomodate tall content in Kasi/Kaur sections */}
+                     <div className="line-v top-0 left-1/2 h-[920px] bg-slate-300 z-0"></div>
 
 
                      {/* Branch Drops */}
